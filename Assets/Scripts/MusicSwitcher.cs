@@ -20,18 +20,33 @@ public class MusicSwitcher : MonoBehaviour
         // Start playing background music at the start
         audioSource.clip = backgroundMusic;
         audioSource.Play();
+
+        // Debug: Check if the background music started
+        Debug.Log("Background music started: " + audioSource.clip.name);
     }
 
-private void OnTriggerEnter2D(Collider2D other)
-{
-    Debug.Log("Triggered with: " + other.gameObject.name); // Check if this log appears when the player touches the item
-    if (other.CompareTag("Item") && !hasPickedUpItem)
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        hasPickedUpItem = true;
-        Destroy(other.gameObject);
-        SwitchMusic();
+        Debug.Log("Triggered with: " + other.gameObject.name); // Log the object we collided with
+
+        // Check if we collided with an object tagged as "Item" and if the item hasn't been picked up already
+        if (other.CompareTag("Item") && !hasPickedUpItem)
+        {
+            Debug.Log("Item picked up: " + other.gameObject.name); // Confirm item was picked up
+
+            hasPickedUpItem = true;
+
+            // Destroy the item
+            Destroy(other.gameObject);
+
+            // Switch the music
+            SwitchMusic();
+        }
+        else
+        {
+            Debug.Log("Triggered with something that is not the item or item already picked up.");
+        }
     }
-}
 
     void SwitchMusic()
     {
@@ -43,5 +58,8 @@ private void OnTriggerEnter2D(Collider2D other)
         // Switch to the new music clip and play it
         audioSource.clip = itemPickupMusic;
         audioSource.Play();
+
+        // Debug: Check if the item pickup music started
+        Debug.Log("Item pickup music started: " + audioSource.clip.name);
     }
 }
