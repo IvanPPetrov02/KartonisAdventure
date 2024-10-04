@@ -6,12 +6,14 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpForce = 10f; // Jump force
     [SerializeField] private float glideGravityScale = 0.4f; // Gravity scale when gliding
     [SerializeField] private float glideSpeed = 5f; // Horizontal speed when gliding
-    
+    [SerializeField] private int maxJumps = 2; // Number of allowed jumps (2 for double jump)
+
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
     private bool gliding;
     private float glideDirection; // Stores the initial direction when gliding starts
+    private int currentJumps; // Tracks how many jumps the player has made
 
     private void Awake()
     {
@@ -41,17 +43,15 @@ public class PlayerMovement : MonoBehaviour
             body.velocity = new Vector2(glideDirection * glideSpeed, body.velocity.y);
         }
 
-        // If both Space and G are pressed on the ground, prioritize the jump
-        if (grounded)
+        // Handle jumping and double jump
+        if (Input.GetKeyDown(KeyCode.Space) && currentJumps < maxJumps)
         {
-            if (Input.GetKey(KeyCode.Space))
-            {
-                Jump(); // Prioritize jumping when grounded
-            }
+            Jump(); // Jump or double jump
         }
-        else
+
+        // Gliding toggle based on the "G" key when airborne
+        if (!grounded)
         {
-            // Gliding toggle based on the "G" key when airborne
             if (Input.GetKey(KeyCode.G) && !gliding)
             {
                 StartGliding();
@@ -69,10 +69,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        // Reset gliding state and allow jumping
+        // Reset gliding state and allow jumping or double jump
         StopGliding();
+
         body.velocity = new Vector2(body.velocity.x, jumpForce); // Apply jump force
         anim.SetTrigger("Jump");
+
+        currentJumps++; // Increment jump count
         grounded = false;
     }
 
@@ -93,7 +96,7 @@ public class PlayerMovement : MonoBehaviour
         glideDirection = body.velocity.x > 0 ? 1f : (body.velocity.x < 0 ? -1f : 0f);
 
         // Reduce gravity for slower falling during gliding
-        body.gravityScale = glideGravityScale; 
+        body.gravityScale = glideGravityScale;
         anim.SetBool("Glide", true);
     }
 
@@ -111,6 +114,7 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.tag == "Ground")
         {
             grounded = true;
+            currentJumps = 0; // Reset the jump count when touching the ground
             StopGliding(); // Stop gliding when grounded
         }
     }
