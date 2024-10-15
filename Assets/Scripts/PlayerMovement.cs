@@ -2,18 +2,20 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private float speed = 5f; // Movement speed
-    [SerializeField] private float jumpForce = 10f; // Jump force
-    [SerializeField] private float glideGravityScale = 0.4f; // Gravity scale when gliding
-    [SerializeField] private float glideSpeed = 5f; // Horizontal speed when gliding
-    [SerializeField] private int maxJumps = 2; // Number of allowed jumps (2 for double jump)
+    [SerializeField] private float speed = 5f;
+    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private float glideGravityScale = 0.4f;
+    [SerializeField] private float glideSpeed = 5f;
+    [SerializeField] private int maxJumps = 2;
+    [SerializeField] private float guitarHitRadius = 1.5f;
+    [SerializeField] private LayerMask breakableLayer; // Layer for breakable walls
 
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
     private bool gliding;
-    private float glideDirection; // Stores the initial direction when gliding starts
-    private int currentJumps; // Tracks how many jumps the player has made
+    private float glideDirection;
+    private int currentJumps;
 
     private void Awake()
     {
@@ -25,31 +27,25 @@ public class PlayerMovement : MonoBehaviour
     {
         float horizontalInput = Input.GetAxis("Horizontal");
 
-        // Apply movement based on gliding state
         if (!gliding)
         {
-            // Normal horizontal movement
             body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
 
-            // Flip player when turning
             if (horizontalInput > 0.01f)
-                transform.localScale = Vector3.one; // Face right
+                transform.localScale = Vector3.one;
             else if (horizontalInput < -0.01f)
-                transform.localScale = new Vector3(-1, 1, 1); // Face left
+                transform.localScale = new Vector3(-1, 1, 1);
         }
         else
         {
-            // Maintain the initial direction when gliding
             body.velocity = new Vector2(glideDirection * glideSpeed, body.velocity.y);
         }
 
-        // Handle jumping and double jump
         if (Input.GetKeyDown(KeyCode.Space) && currentJumps < maxJumps)
         {
-            Jump(); // Jump or double jump
+            Jump();
         }
 
-        // Gliding toggle based on the "G" key when airborne
         if (!grounded)
         {
             if (Input.GetKey(KeyCode.G) && !gliding)
@@ -62,50 +58,50 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Update animator parameters
+        // Check for breaking wall when pressing "B"
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            BreakWallWithGuitar();
+        }
+
         anim.SetBool("Run", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
     }
 
     private void Jump()
     {
-        // Reset gliding state and allow jumping or double jump
         StopGliding();
 
-        body.velocity = new Vector2(body.velocity.x, jumpForce); // Apply jump force
+        body.velocity = new Vector2(body.velocity.x, jumpForce);
         anim.SetTrigger("Jump");
 
-        currentJumps++; // Increment jump count
+        currentJumps++;
         grounded = false;
     }
 
     private void StartGliding()
     {
-        // Do not allow gliding if the player is grounded
         if (grounded) return;
 
         gliding = true;
 
-        // Stop upward velocity (if the player is going up) when gliding starts
         if (body.velocity.y > 0)
         {
-            body.velocity = new Vector2(body.velocity.x, 0f); // Reset upward velocity
+            body.velocity = new Vector2(body.velocity.x, 0f);
         }
 
-        // Determine the initial horizontal direction for gliding
         glideDirection = body.velocity.x > 0 ? 1f : (body.velocity.x < 0 ? -1f : 0f);
 
-        // Reduce gravity for slower falling during gliding
         body.gravityScale = glideGravityScale;
         anim.SetBool("Glide", true);
     }
 
     private void StopGliding()
     {
-        if (!gliding) return; // Ensure gliding is only stopped once
+        if (!gliding) return;
 
         gliding = false;
-        body.gravityScale = 1f; // Restore normal gravity
+        body.gravityScale = 1f;
         anim.SetBool("Glide", false);
     }
 
@@ -114,8 +110,8 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.tag == "Ground")
         {
             grounded = true;
-            currentJumps = 0; // Reset the jump count when touching the ground
-            StopGliding(); // Stop gliding when grounded
+            currentJumps = 0;
+            StopGliding();
         }
     }
 
@@ -125,5 +121,27 @@ public class PlayerMovement : MonoBehaviour
         {
             grounded = false;
         }
+    }
+
+    // Method to break walls when pressing "B"
+    private void BreakWallWithGuitar()
+    {
+        // Detect breakable walls in front of the player within a certain radius
+        Collider2D[] hitWalls = Physics2D.OverlapCircleAll(transform.position, guitarHitRadius, breakableLayer);
+
+        if (hitWalls.Length > 0)
+        {
+            foreach (Collider2D wall in hitWalls)
+            {
+                wall.GetComponent<BreakableWall>()?.Break();
+            }
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // Visualize the guitar hit radius for debugging
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, guitarHitRadius);
     }
 }
