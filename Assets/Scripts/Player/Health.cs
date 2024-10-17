@@ -4,39 +4,60 @@ using UnityEngine;
 
 public class Health : MonoBehaviour
 {
-    [SerializeField]private float startingHealth;
-    public float currentHealth {get; private set;}
+    [SerializeField] private float startingHealth;
+    public float currentHealth { get; private set; }
+
     private Animator anim;
+    private bool isDead;
+
     private void Awake()
     {
         currentHealth = startingHealth;
         anim = GetComponent<Animator>();
     }
-    public void TakeDamage(float _damage)
-    {
-        currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
 
-        if(currentHealth > 0)
+    public void TakeDamage(float damage)
+    {
+        if (isDead) return;
+
+        currentHealth = Mathf.Clamp(currentHealth - damage, 0, startingHealth);
+
+        if (currentHealth > 0)
         {
             anim.SetTrigger("Hurt");
         }
         else
         {
-        // Disable the animation trigger for death
-        // anim.SetTrigger("die");
-
-        // Flip the player on their back
-        // This could be done by rotating or flipping the sprite
-        GetComponent<SpriteRenderer>().flipY = true;  // Flips the sprite vertically
-        
-        // Optionally disable player movement or other components as needed
-        GetComponent<PlayerMovement>().enabled = false;
+            if (!isDead)
+            {
+                Die();
+            }
         }
+
+        // Update the health bar whenever health changes
+        FindObjectOfType<Healthbar>().UpdateHealthBar(currentHealth, startingHealth);
     }
-    //for testing
-    private void Update() 
+
+    private void Die()
     {
-        if(Input.GetKeyDown(KeyCode.E))
+        isDead = true;
+
+        // Play death animation or any other death-related behavior
+        anim.SetTrigger("Die");
+
+        // Optionally flip the player on their back
+        GetComponent<SpriteRenderer>().flipY = true;
+
+        // Disable player movement or other components
+        GetComponent<PlayerMovement>().enabled = false;
+    }
+
+    // For testing purposes
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
             TakeDamage(1);
+        }
     }
 }
