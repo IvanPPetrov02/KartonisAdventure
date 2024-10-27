@@ -1,19 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Health : MonoBehaviour
 {
-    [SerializeField] private float startingHealth;
-    public float currentHealth { get; private set; }
+    [SerializeField] private float startingHealth = 3; 
+    public float currentHealth { get; private set; }  
 
     private Animator anim;
     private bool isDead;
+    private Healthbar healthbar; // Reference to Healthbar
 
     private void Awake()
     {
-        currentHealth = startingHealth;
-        anim = GetComponent<Animator>();
+        currentHealth = startingHealth; 
+        anim = GetComponent<Animator>(); 
+        healthbar = FindObjectOfType<Healthbar>(); // Get reference to Healthbar
+        healthbar.UpdateHealthBar(currentHealth, startingHealth); // Initialize healthbar
     }
 
     public void TakeDamage(float damage)
@@ -26,36 +30,31 @@ public class Health : MonoBehaviour
         {
             anim.SetTrigger("Hurt");
         }
-        else
+        else if (!isDead)
         {
-            if (!isDead)
-            {
-                Die();
-            }
+            Die();
         }
 
-        // Update the health bar whenever health changes
-        FindObjectOfType<Healthbar>().UpdateHealthBar(currentHealth, startingHealth);
+        healthbar?.UpdateHealthBar(currentHealth, startingHealth); // Update the health bar
     }
 
     private void Die()
     {
         isDead = true;
-
-        // Play death animation or any other death-related behavior
         anim.SetTrigger("Die");
-
-        // Optionally flip the player on their back
         GetComponent<SpriteRenderer>().flipY = true;
-
-        // Disable player movement or other components
         GetComponent<PlayerMovement>().enabled = false;
+        Invoke("ReloadScene", 2f);
     }
 
-    // For testing purposes
-    private void Update()
+    private void ReloadScene()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Spike"))
         {
             TakeDamage(1);
         }
