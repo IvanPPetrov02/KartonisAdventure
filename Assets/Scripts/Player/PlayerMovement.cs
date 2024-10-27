@@ -14,12 +14,15 @@ public class PlayerMovement : MonoBehaviour
     private bool gliding;
     private float glideDirection; // Stores the initial direction when gliding starts
     private int currentJumps; // Tracks how many jumps the player has made
+    private Vector3 originalScale;
 
     private void Awake()
     {
         anim = GetComponent<Animator>();
         body = GetComponent<Rigidbody2D>();
+        originalScale = transform.localScale; // Store the original scale at the start
     }
+
 
     private void Update()
     {
@@ -33,9 +36,9 @@ public class PlayerMovement : MonoBehaviour
 
             // Flip player when turning
             if (horizontalInput > 0.01f)
-                transform.localScale = Vector3.one; // Face right
+                transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z); // Face right
             else if (horizontalInput < -0.01f)
-                transform.localScale = new Vector3(-1, 1, 1); // Face left
+                transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z); // Face left
         }
         else
         {
