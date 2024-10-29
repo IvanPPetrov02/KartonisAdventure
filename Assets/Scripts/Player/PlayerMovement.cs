@@ -8,6 +8,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float glideSpeed = 5f;
     [SerializeField] private int maxJumps = 2;
 
+    [SerializeField] private float guitarHitRadius = 1.5f;
+    [SerializeField] private LayerMask breakableLayer;
+
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
@@ -57,7 +60,13 @@ public class PlayerMovement : MonoBehaviour
                 StopGliding();
             }
         }
-
+        
+        // Check for breaking wall when pressing "B"
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            BreakWallWithGuitar();
+        }
+        
         anim.SetBool("Run", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
     }
@@ -97,6 +106,7 @@ public class PlayerMovement : MonoBehaviour
 
         gliding = false;
         body.gravityScale = 1f;
+        anim.SetBool("Glide", false);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -115,5 +125,27 @@ public class PlayerMovement : MonoBehaviour
         {
             grounded = false;
         }
+    }
+
+    // Method to break walls when pressing "B"
+    private void BreakWallWithGuitar()
+    {
+        // Detect breakable walls in front of the player within a certain radius
+        Collider2D[] hitWalls = Physics2D.OverlapCircleAll(transform.position, guitarHitRadius, breakableLayer);
+
+        if (hitWalls.Length > 0)
+        {
+            foreach (Collider2D wall in hitWalls)
+            {
+                wall.GetComponent<BreakableWall>()?.Break();
+            }
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // Visualize the guitar hit radius for debugging
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, guitarHitRadius);
     }
 }
