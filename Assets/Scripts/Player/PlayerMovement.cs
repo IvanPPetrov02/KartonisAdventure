@@ -117,24 +117,26 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void Dash()
-    {
-        dashing = true;
-        lastDashTime = Time.time;
+{
+    dashing = true;
+    lastDashTime = Time.time;
 
-        // Determine dash direction based on player facing direction (localScale.x)
-        float dashDirection = transform.localScale.x > 0 ? 1 : -1;
-        body.velocity = new Vector2(dashDirection * dashForce, body.velocity.y);
+    // Determine dash direction based on player facing direction (localScale.x)
+    float dashDirection = transform.localScale.x > 0 ? 1 : -1;
+    body.velocity = new Vector2(dashDirection * dashForce, body.velocity.y);
 
-        anim.SetTrigger("Dash");
+    // Trigger the dash animation
+    anim.SetTrigger("Dash");
 
-        // End dash after a short time
-        Invoke(nameof(EndDash), 0.1f); // Adjust the dash duration as needed
-    }
+    // End dash after a short time
+    Invoke(nameof(EndDash), 0.1f); // Adjust the dash duration as needed
+}
 
-    private void EndDash()
-    {
-        dashing = false;
-    }
+private void EndDash()
+{
+    dashing = false;
+}
+
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
