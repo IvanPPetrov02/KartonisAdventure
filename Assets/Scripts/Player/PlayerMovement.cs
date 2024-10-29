@@ -9,14 +9,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private int maxJumps = 2;
     [SerializeField] private float guitarHitRadius = 1.5f;
     [SerializeField] private LayerMask breakableLayer; // Layer for breakable walls
+    [SerializeField] private float dashForce = 15f;    // Force applied during dash
+    [SerializeField] private float dashCooldown = 1f;  // Cooldown time for dash
 
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
     private bool gliding;
+    private bool dashing;
     private float glideDirection;
     private int currentJumps;
     private Vector3 originalScale;
+    private float lastDashTime;
 
     private void Awake()
     {
@@ -29,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     {
         float horizontalInput = Input.GetAxis("Horizontal");
 
-        if (!gliding)
+        if (!gliding && !dashing)
         {
             body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
 
@@ -38,7 +42,7 @@ public class PlayerMovement : MonoBehaviour
             else if (horizontalInput < -0.01f)
                 transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
         }
-        else
+        else if (gliding)
         {
             body.velocity = new Vector2(glideDirection * glideSpeed, body.velocity.y);
         }
@@ -58,6 +62,12 @@ public class PlayerMovement : MonoBehaviour
             {
                 StopGliding();
             }
+        }
+
+        // Dash when pressing Left Shift and not on cooldown
+        if (Input.GetKeyDown(KeyCode.LeftShift) && Time.time >= lastDashTime + dashCooldown)
+        {
+            Dash();
         }
 
         // Check for breaking wall when pressing "B"
@@ -94,8 +104,6 @@ public class PlayerMovement : MonoBehaviour
         glideDirection = body.velocity.x > 0 ? 1f : (body.velocity.x < 0 ? -1f : 0f);
 
         body.gravityScale = glideGravityScale;
-
-        // Use the glide animation trigger to play the animation once
         anim.SetTrigger("StartGlide");
     }
 
@@ -106,6 +114,26 @@ public class PlayerMovement : MonoBehaviour
         gliding = false;
         body.gravityScale = 1f;
         anim.SetBool("Glide", false);
+    }
+
+    private void Dash()
+    {
+        dashing = true;
+        lastDashTime = Time.time;
+
+        // Determine dash direction based on player facing direction (localScale.x)
+        float dashDirection = transform.localScale.x > 0 ? 1 : -1;
+        body.velocity = new Vector2(dashDirection * dashForce, body.velocity.y);
+
+        anim.SetTrigger("Dash");
+
+        // End dash after a short time
+        Invoke(nameof(EndDash), 0.1f); // Adjust the dash duration as needed
+    }
+
+    private void EndDash()
+    {
+        dashing = false;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -129,7 +157,6 @@ public class PlayerMovement : MonoBehaviour
     // Method to break walls when pressing "B"
     private void BreakWallWithGuitar()
     {
-        // Detect breakable walls in front of the player within a certain radius
         Collider2D[] hitWalls = Physics2D.OverlapCircleAll(transform.position, guitarHitRadius, breakableLayer);
 
         if (hitWalls.Length > 0)
@@ -143,7 +170,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Visualize the guitar hit radius for debugging
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, guitarHitRadius);
     }
