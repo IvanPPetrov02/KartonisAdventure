@@ -7,9 +7,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float glideGravityScale = 0.4f;
     [SerializeField] private float glideSpeed = 5f;
     [SerializeField] private int maxJumps = 2;
-
     [SerializeField] private float guitarHitRadius = 1.5f;
-    [SerializeField] private LayerMask breakableLayer;
+    [SerializeField] private LayerMask breakableLayer; // Layer for breakable walls
 
     private Rigidbody2D body;
     private Animator anim;
@@ -60,13 +59,13 @@ public class PlayerMovement : MonoBehaviour
                 StopGliding();
             }
         }
-        
+
         // Check for breaking wall when pressing "B"
         if (Input.GetKeyDown(KeyCode.B))
         {
             BreakWallWithGuitar();
         }
-        
+
         anim.SetBool("Run", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
     }
