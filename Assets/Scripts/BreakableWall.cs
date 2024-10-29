@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BreakableWall : MonoBehaviour
 {
-    [SerializeField] private GameObject breakEffect; // The effect that plays when the wall is broken
+    [SerializeField] private GameObject breakEffect;
 
     public void Break()
     {
