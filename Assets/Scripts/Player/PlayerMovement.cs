@@ -11,6 +11,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private LayerMask breakableLayer; // Layer for breakable walls
     [SerializeField] private float dashForce = 15f;    // Force applied during dash
     [SerializeField] private float dashCooldown = 1f;  // Cooldown time for dash
+    [SerializeField] private AudioClip jumpSound;
+    [SerializeField] private AudioClip moveSound;
+     [SerializeField] private AudioClip dashSound;
+    [SerializeField] private AudioClip glideSound;
 
     private Rigidbody2D body;
     private Animator anim;
@@ -21,12 +25,14 @@ public class PlayerMovement : MonoBehaviour
     private int currentJumps;
     private Vector3 originalScale;
     private float lastDashTime;
+    private AudioSource audioSource;
 
     private void Awake()
     {
         anim = GetComponent<Animator>();
         body = GetComponent<Rigidbody2D>();
         originalScale = transform.localScale;
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -41,6 +47,17 @@ public class PlayerMovement : MonoBehaviour
                 transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
             else if (horizontalInput < -0.01f)
                 transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
+                // Play move sound when moving
+            if (horizontalInput != 0 && !audioSource.isPlaying)
+        {
+            audioSource.clip = moveSound;
+            audioSource.loop = true; // Set to loop so it continues while moving
+            audioSource.Play();
+        }
+        else if (horizontalInput == 0 && audioSource.isPlaying)
+        {
+            audioSource.Stop(); // Stop the sound if not moving
+        }
         }
         else if (gliding)
         {
@@ -85,6 +102,7 @@ public class PlayerMovement : MonoBehaviour
         StopGliding();
         body.velocity = new Vector2(body.velocity.x, jumpForce);
         anim.SetTrigger("Jump");
+        audioSource.PlayOneShot(jumpSound);
 
         currentJumps++;
         grounded = false;
@@ -105,6 +123,9 @@ public class PlayerMovement : MonoBehaviour
 
         body.gravityScale = glideGravityScale;
         anim.SetTrigger("StartGlide");
+        audioSource.clip = glideSound;
+        audioSource.loop = true;
+        audioSource.Play();
     }
 
     private void StopGliding()
@@ -114,6 +135,10 @@ public class PlayerMovement : MonoBehaviour
         gliding = false;
         body.gravityScale = 1f;
         anim.SetBool("Glide", false);
+        if (audioSource.clip == glideSound && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
     }
 
     private void Dash()
@@ -128,6 +153,7 @@ public class PlayerMovement : MonoBehaviour
     // Trigger the dash animation
     anim.SetTrigger("Dash");
 
+    audioSource.PlayOneShot(dashSound);
     // End dash after a short time
     Invoke(nameof(EndDash), 0.1f); // Adjust the dash duration as needed
 }
