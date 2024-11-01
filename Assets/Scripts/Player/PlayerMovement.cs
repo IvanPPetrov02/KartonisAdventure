@@ -151,7 +151,7 @@ public class PlayerMovement : MonoBehaviour
     body.velocity = new Vector2(dashDirection * dashForce, body.velocity.y);
 
     // Trigger the dash animation
-    anim.SetTrigger("Dash");
+    //anim.SetTrigger("Dash");
 
     audioSource.PlayOneShot(dashSound);
     // End dash after a short time
