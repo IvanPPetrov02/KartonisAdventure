@@ -3,29 +3,51 @@ using UnityEngine.SceneManagement;
 
 public class Health : MonoBehaviour
 {
-    [SerializeField] public float startingHealth = 3; // Player starts with 3 health
-    public float currentHealth { get; private set; }  // Exposed property for current health
+    [SerializeField] public float startingHealth = 3;
+    public float currentHealth { get; private set; }
+    [SerializeField] private float iframeDuration = 1f; // Duration of invincibility frames after taking damage
 
     private Animator anim;
     private bool isDead;
+    private bool isInvincible;
+    private float iframeTimer;
+    private Collider2D colliderComponent;
+    private bool isInDamageZone;
 
     private void Awake()
     {
-        currentHealth = startingHealth;  // Set current health to starting health
-        anim = GetComponent<Animator>(); // Get Animator component for triggering animations
+        currentHealth = startingHealth;
+        anim = GetComponent<Animator>();
+        colliderComponent = GetComponent<Collider2D>();
     }
 
-    // Method to take damage
+    private void Update()
+    {
+        if (isInvincible)
+        {
+            iframeTimer -= Time.deltaTime;
+            if (iframeTimer <= 0)
+            {
+                isInvincible = false;
+                EnableHitbox();
+                if (isInDamageZone)
+                {
+                    TakeDamage(1);
+                }
+            }
+        }
+    }
+    
     public void TakeDamage(float damage)
     {
-        if (isDead) return;  // Do nothing if the player is dead
-
-        // Reduce current health, but not below 0
+        if (isDead || isInvincible) return;
+        
         currentHealth = Mathf.Clamp(currentHealth - damage, 0, startingHealth);
 
         if (currentHealth > 0)
         {
             anim.SetTrigger("Hurt");
+            ActivateIframes();
         }
         else
         {
@@ -37,15 +59,13 @@ public class Health : MonoBehaviour
 
         FindObjectOfType<Healthbar>()?.UpdateHealthBar(currentHealth, startingHealth);
     }
-
-    // Method to increase health
+    
     public void IncreaseHealth(float amount)
     {
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, startingHealth);
         FindObjectOfType<Healthbar>()?.UpdateHealthBar(currentHealth, startingHealth);
     }
-
-    // Death handling
+    
     private void Die()
     {
         isDead = true;
@@ -66,9 +86,33 @@ public class Health : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Spike"))
+        if (collision.gameObject.CompareTag("Spike") || collision.gameObject.CompareTag("Enemy"))
         {
+            isInDamageZone = true;
             TakeDamage(1);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Spike") || collision.gameObject.CompareTag("Enemy"))
+        {
+            isInDamageZone = false;
+        }
+    }
+
+    private void ActivateIframes()
+    {
+        isInvincible = true;
+        iframeTimer = iframeDuration;
+    }
+    
+
+    private void EnableHitbox()
+    {
+        if (colliderComponent != null)
+        {
+            colliderComponent.enabled = true;
         }
     }
 }
