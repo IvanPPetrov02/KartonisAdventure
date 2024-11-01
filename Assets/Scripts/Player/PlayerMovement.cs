@@ -78,7 +78,6 @@ public class PlayerMovement : MonoBehaviour
 
         anim.SetBool("Run", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
-        anim.SetBool("WallSlide", wallSliding);
     }
 
     private void Jump()
