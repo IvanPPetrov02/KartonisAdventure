@@ -13,14 +13,16 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float dashCooldown = 1f;  // Cooldown time for dash
     [SerializeField] private AudioClip jumpSound;
     [SerializeField] private AudioClip moveSound;
-     [SerializeField] private AudioClip dashSound;
+    [SerializeField] private AudioClip dashSound;
     [SerializeField] private AudioClip glideSound;
+    [SerializeField] private float wallSlideSpeed = 2f;
 
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
     private bool gliding;
     private bool dashing;
+    private bool wallSliding;
     private float glideDirection;
     private int currentJumps;
     private Vector3 originalScale;
@@ -39,7 +41,7 @@ public class PlayerMovement : MonoBehaviour
     {
         float horizontalInput = Input.GetAxis("Horizontal");
 
-        if (!gliding && !dashing)
+        if (!gliding && !dashing && !wallSliding)
         {
             body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
 
@@ -81,13 +83,11 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Dash when pressing Left Shift and not on cooldown
         if (Input.GetKeyDown(KeyCode.LeftShift) && Time.time >= lastDashTime + dashCooldown)
         {
             Dash();
         }
 
-        // Check for breaking wall when pressing "B"
         if (Input.GetKeyDown(KeyCode.B))
         {
             BreakWallWithGuitar();
@@ -99,6 +99,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
+        StopWallSlide();
         StopGliding();
         body.velocity = new Vector2(body.velocity.x, jumpForce);
         anim.SetTrigger("Jump");
@@ -110,7 +111,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void StartGliding()
     {
-        if (grounded) return;
+        if (grounded || wallSliding) return;
 
         gliding = true;
 
@@ -142,47 +143,84 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void Dash()
-{
-    dashing = true;
-    lastDashTime = Time.time;
+    {
+        dashing = true;
+        lastDashTime = Time.time;
 
-    // Determine dash direction based on player facing direction (localScale.x)
-    float dashDirection = transform.localScale.x > 0 ? 1 : -1;
-    body.velocity = new Vector2(dashDirection * dashForce, body.velocity.y);
+        float dashDirection = transform.localScale.x > 0 ? 1 : -1;
+        body.velocity = new Vector2(dashDirection * dashForce, body.velocity.y);
 
-    // Trigger the dash animation
-    //anim.SetTrigger("Dash");
 
-    audioSource.PlayOneShot(dashSound);
-    // End dash after a short time
-    Invoke(nameof(EndDash), 0.1f); // Adjust the dash duration as needed
-}
+        // Trigger the dash animation
+        //anim.SetTrigger("Dash");
 
-private void EndDash()
-{
-    dashing = false;
-}
+        audioSource.PlayOneShot(dashSound);
+        // End dash after a short time
+        Invoke(nameof(EndDash), 0.1f); // Adjust the dash duration as needed
+    }
+
+    private void EndDash()
+    {
+        dashing = false;
+    }
 
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.tag == "Ground")
+        if (collision.gameObject.CompareTag("Ground"))
         {
+            // Allow full jump refresh if the player is on top of the ground
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (contact.normal == Vector2.up)
+                {
+                    grounded = true;
+                    currentJumps = 0;
+                    StopGliding();
+                    StopWallSlide();
+                    return;
+                }
+                else if (contact.normal == Vector2.left || contact.normal == Vector2.right)
+                {
+                    // Player is on the side of the ground; initiate sliding on ground sides
+                    StartWallSlide();
+                    return;
+                }
+            }
+        }
+        else if (collision.gameObject.CompareTag("Wall"))
+        {
+            // Refresh only one jump on any wall contact
             grounded = true;
-            currentJumps = 0;
+            if (currentJumps >= maxJumps)
+            {
+                currentJumps = maxJumps - 1;
+            }
             StopGliding();
+            StopWallSlide(); // Ensure wall does not slide
         }
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.gameObject.tag == "Ground")
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Wall"))
         {
             grounded = false;
+            StopWallSlide();
         }
     }
 
-    // Method to break walls when pressing "B"
+    private void StartWallSlide()
+    {
+        wallSliding = true;
+        body.velocity = new Vector2(0, -wallSlideSpeed); // Slow downward slide speed
+    }
+
+    private void StopWallSlide()
+    {
+        wallSliding = false;
+    }
+
     private void BreakWallWithGuitar()
     {
         Collider2D[] hitWalls = Physics2D.OverlapCircleAll(transform.position, guitarHitRadius, breakableLayer);
