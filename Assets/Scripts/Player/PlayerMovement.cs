@@ -8,17 +8,18 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float glideSpeed = 5f;
     [SerializeField] private int maxJumps = 2;
     [SerializeField] private float guitarHitRadius = 1.5f;
-    [SerializeField] private LayerMask breakableLayer; // Layer for breakable walls
-    [SerializeField] private float dashForce = 15f;    // Force applied during dash
-    [SerializeField] private float dashCooldown = 1f;  // Cooldown time for dash
+    [SerializeField] private LayerMask breakableLayer;
+    [SerializeField] private float dashForce = 15f;
+    [SerializeField] private float dashCooldown = 1f;
+    [SerializeField] private float wallSlideSpeed = 2f;
     [SerializeField] private AudioClip jumpSound;
     [SerializeField] private AudioClip moveSound;
     [SerializeField] private AudioClip dashSound;
     [SerializeField] private AudioClip glideSound;
-    [SerializeField] private float wallSlideSpeed = 2f;
 
     private Rigidbody2D body;
     private Animator anim;
+    private AudioSource audioSource;
     private bool grounded;
     private bool gliding;
     private bool dashing;
@@ -27,7 +28,6 @@ public class PlayerMovement : MonoBehaviour
     private int currentJumps;
     private Vector3 originalScale;
     private float lastDashTime;
-    private AudioSource audioSource;
 
     private void Awake()
     {
@@ -43,23 +43,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (!gliding && !dashing && !wallSliding)
         {
-            body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
-
-            if (horizontalInput > 0.01f)
-                transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
-            else if (horizontalInput < -0.01f)
-                transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
-                // Play move sound when moving
-            if (horizontalInput != 0 && !audioSource.isPlaying)
-        {
-            audioSource.clip = moveSound;
-            audioSource.loop = true; // Set to loop so it continues while moving
-            audioSource.Play();
-        }
-        else if (horizontalInput == 0 && audioSource.isPlaying)
-        {
-            audioSource.Stop(); // Stop the sound if not moving
-        }
+            Move(horizontalInput);
         }
         else if (gliding)
         {
@@ -71,30 +55,33 @@ public class PlayerMovement : MonoBehaviour
             Jump();
         }
 
-        if (!grounded)
-        {
-            if (Input.GetKey(KeyCode.G) && !gliding)
-            {
-                StartGliding();
-            }
-            else if (Input.GetKeyUp(KeyCode.G) || grounded)
-            {
-                StopGliding();
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftShift) && Time.time >= lastDashTime + dashCooldown)
-        {
-            Dash();
-        }
-
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            BreakWallWithGuitar();
-        }
+        HandleGliding();
+        HandleDashing();
+        HandleGuitarHit();
 
         anim.SetBool("Run", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
+    }
+
+    private void Move(float horizontalInput)
+    {
+        body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
+
+        if (horizontalInput > 0.01f)
+            transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
+        else if (horizontalInput < -0.01f)
+            transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
+
+        if (horizontalInput != 0 && !audioSource.isPlaying)
+        {
+            audioSource.clip = moveSound;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+        else if (horizontalInput == 0 && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
     }
 
     private void Jump()
@@ -109,12 +96,23 @@ public class PlayerMovement : MonoBehaviour
         grounded = false;
     }
 
+    private void HandleGliding()
+    {
+        if (!grounded && Input.GetKey(KeyCode.G) && !gliding)
+        {
+            StartGliding();
+        }
+        else if (Input.GetKeyUp(KeyCode.G) || grounded)
+        {
+            StopGliding();
+        }
+    }
+
     private void StartGliding()
     {
         if (grounded || wallSliding) return;
 
         gliding = true;
-
         if (body.velocity.y > 0)
         {
             body.velocity = new Vector2(body.velocity.x, 0f);
@@ -142,6 +140,14 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void HandleDashing()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift) && Time.time >= lastDashTime + dashCooldown)
+        {
+            Dash();
+        }
+    }
+
     private void Dash()
     {
         dashing = true;
@@ -150,13 +156,10 @@ public class PlayerMovement : MonoBehaviour
         float dashDirection = transform.localScale.x > 0 ? 1 : -1;
         body.velocity = new Vector2(dashDirection * dashForce, body.velocity.y);
 
-
-        // Trigger the dash animation
-        //anim.SetTrigger("Dash");
-
+        anim.SetTrigger("Dash");
         audioSource.PlayOneShot(dashSound);
-        // End dash after a short time
-        Invoke(nameof(EndDash), 0.1f); // Adjust the dash duration as needed
+
+        Invoke(nameof(EndDash), 0.1f);
     }
 
     private void EndDash()
@@ -164,41 +167,68 @@ public class PlayerMovement : MonoBehaviour
         dashing = false;
     }
 
+    private void HandleGuitarHit()
+    {
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            BreakWallWithGuitar();
+        }
+    }
+
+    private void BreakWallWithGuitar()
+    {
+        Collider2D[] hitWalls = Physics2D.OverlapCircleAll(transform.position, guitarHitRadius, breakableLayer);
+
+        if (hitWalls.Length > 0)
+        {
+            foreach (Collider2D wall in hitWalls)
+            {
+                wall.GetComponent<BreakableWall>()?.Break();
+            }
+        }
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
-            // Allow full jump refresh if the player is on top of the ground
-            foreach (ContactPoint2D contact in collision.contacts)
-            {
-                if (contact.normal == Vector2.up)
-                {
-                    grounded = true;
-                    currentJumps = 0;
-                    StopGliding();
-                    StopWallSlide();
-                    return;
-                }
-                else if (contact.normal == Vector2.left || contact.normal == Vector2.right)
-                {
-                    // Player is on the side of the ground; initiate sliding on ground sides
-                    StartWallSlide();
-                    return;
-                }
-            }
+            HandleGroundCollision(collision);
         }
         else if (collision.gameObject.CompareTag("Wall"))
         {
-            // Refresh only one jump on any wall contact
-            grounded = true;
-            if (currentJumps >= maxJumps)
-            {
-                currentJumps = maxJumps - 1;
-            }
-            StopGliding();
-            StopWallSlide(); // Ensure wall does not slide
+            HandleWallCollision();
         }
+    }
+
+    private void HandleGroundCollision(Collision2D collision)
+    {
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal == Vector2.up)
+            {
+                grounded = true;
+                currentJumps = 0;
+                StopGliding();
+                StopWallSlide();
+                return;
+            }
+            else if (contact.normal == Vector2.left || contact.normal == Vector2.right)
+            {
+                StartWallSlide();
+                return;
+            }
+        }
+    }
+
+    private void HandleWallCollision()
+    {
+        grounded = true;
+        if (currentJumps >= maxJumps)
+        {
+            currentJumps = maxJumps - 1;
+        }
+        StopGliding();
+        StopWallSlide();
     }
 
     private void OnCollisionExit2D(Collision2D collision)
@@ -213,25 +243,12 @@ public class PlayerMovement : MonoBehaviour
     private void StartWallSlide()
     {
         wallSliding = true;
-        body.velocity = new Vector2(0, -wallSlideSpeed); // Slow downward slide speed
+        body.velocity = new Vector2(0, -wallSlideSpeed);
     }
 
     private void StopWallSlide()
     {
         wallSliding = false;
-    }
-
-    private void BreakWallWithGuitar()
-    {
-        Collider2D[] hitWalls = Physics2D.OverlapCircleAll(transform.position, guitarHitRadius, breakableLayer);
-
-        if (hitWalls.Length > 0)
-        {
-            foreach (Collider2D wall in hitWalls)
-            {
-                wall.GetComponent<BreakableWall>()?.Break();
-            }
-        }
     }
 
     private void OnDrawGizmosSelected()
