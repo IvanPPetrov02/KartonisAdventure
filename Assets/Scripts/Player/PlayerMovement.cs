@@ -63,26 +63,28 @@ public class PlayerMovement : MonoBehaviour
         anim.SetBool("Grounded", grounded);
     }
 
-    private void Move(float horizontalInput)
+private void Move(float horizontalInput)
+{
+    body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
+
+    if (horizontalInput > 0.01f)
+        transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
+    else if (horizontalInput < -0.01f)
+        transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
+
+    // Only play movement sound if the player is grounded
+    if (horizontalInput != 0 && grounded && !audioSource.isPlaying)
     {
-        body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
-
-        if (horizontalInput > 0.01f)
-            transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
-        else if (horizontalInput < -0.01f)
-            transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
-
-        if (horizontalInput != 0 && !audioSource.isPlaying)
-        {
-            audioSource.clip = moveSound;
-            audioSource.loop = true;
-            audioSource.Play();
-        }
-        else if (horizontalInput == 0 && audioSource.isPlaying)
-        {
-            audioSource.Stop();
-        }
+        audioSource.clip = moveSound;
+        audioSource.loop = true;
+        audioSource.Play();
     }
+    else if ((horizontalInput == 0 || !grounded) && audioSource.isPlaying)
+    {
+        audioSource.Stop();
+    }
+}
+
 
     private void Jump()
     {
