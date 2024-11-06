@@ -2897,7 +2897,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 243.02, y: 28.82}
+  m_AnchoredPosition: {x: -31.71, y: 34.57}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 0.48808083, y: 0.4977778}
 --- !u!114 &321583541
@@ -6198,7 +6198,7 @@ GameObject:
   - component: {fileID: 617619859}
   m_Layer: 0
   m_Name: Stairs outside (5)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6304,7 +6304,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: ce0095f4c1f07cb4fbd8b207ba22ea8f, type: 3}
-  m_Color: {r: 0.40392157, g: 0.3882353, b: 0.3882353, a: 1}
+  m_Color: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -6324,7 +6324,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1013.41, y: 23.59, z: 0}
-  m_LocalScale: {x: 6.2148895, y: 7.32875, z: 1}
+  m_LocalScale: {x: 6.2148895, y: 7.32875, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -8185,7 +8185,7 @@ GameObject:
   - component: {fileID: 861786476}
   m_Layer: 0
   m_Name: Stairs outside (6)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -8291,7 +8291,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: ce0095f4c1f07cb4fbd8b207ba22ea8f, type: 3}
-  m_Color: {r: 0.40392157, g: 0.3882353, b: 0.3882353, a: 1}
+  m_Color: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -8311,7 +8311,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1017.63, y: 28.01, z: 0}
-  m_LocalScale: {x: 6.2148895, y: 7.32875, z: 1}
+  m_LocalScale: {x: 6.2148895, y: 7.32875, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -11330,7 +11330,7 @@ GameObject:
   - component: {fileID: 1373569030}
   m_Layer: 0
   m_Name: Stairs outside (3)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11377,7 +11377,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: ce0095f4c1f07cb4fbd8b207ba22ea8f, type: 3}
-  m_Color: {r: 0.40392157, g: 0.3882353, b: 0.3882353, a: 1}
+  m_Color: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -13278,7 +13278,7 @@ GameObject:
   - component: {fileID: 1718040154}
   m_Layer: 0
   m_Name: Stairs outside (4)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -13384,7 +13384,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: ce0095f4c1f07cb4fbd8b207ba22ea8f, type: 3}
-  m_Color: {r: 0.40392157, g: 0.3882353, b: 0.3882353, a: 1}
+  m_Color: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -13404,7 +13404,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1009.79, y: 19.26, z: 0}
-  m_LocalScale: {x: 6.2148895, y: 7.32875, z: 1}
+  m_LocalScale: {x: 6.2148895, y: 7.32875, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -14046,7 +14046,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.039264068, y: -0.00747478}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -14057,7 +14057,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.7812953, y: 0.85901475}
+  m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
 --- !u!222 &1824498349
 CanvasRenderer:
