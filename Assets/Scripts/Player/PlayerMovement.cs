@@ -29,16 +29,29 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 originalScale;
     private float lastDashTime;
 
+    private DialogueManager dialogueManager;
+
     private void Awake()
     {
         anim = GetComponent<Animator>();
         body = GetComponent<Rigidbody2D>();
         originalScale = transform.localScale;
         audioSource = GetComponent<AudioSource>();
+
+        // Cache reference to the DialogueManager
+        dialogueManager = FindObjectOfType<DialogueManager>();
     }
 
     private void Update()
     {
+        // Disable movement if dialogue is active
+        if (dialogueManager != null && dialogueManager.IsDialogueActive())
+        {
+            anim.SetBool("Run", false);
+            anim.SetBool("Grounded", grounded);
+            return;
+        }
+
         float horizontalInput = Input.GetAxis("Horizontal");
 
         if (!gliding && !dashing && !wallSliding)
@@ -72,13 +85,14 @@ public class PlayerMovement : MonoBehaviour
         else if (horizontalInput < -0.01f)
             transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
 
-        if (horizontalInput != 0 && !audioSource.isPlaying)
+        // Only play movement sound if the player is grounded
+        if (horizontalInput != 0 && grounded && !audioSource.isPlaying)
         {
             audioSource.clip = moveSound;
             audioSource.loop = true;
             audioSource.Play();
         }
-        else if (horizontalInput == 0 && audioSource.isPlaying)
+        else if ((horizontalInput == 0 || !grounded) && audioSource.isPlaying)
         {
             audioSource.Stop();
         }
