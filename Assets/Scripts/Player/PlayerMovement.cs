@@ -29,16 +29,29 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 originalScale;
     private float lastDashTime;
 
+    private DialogueManager dialogueManager;
+
     private void Awake()
     {
         anim = GetComponent<Animator>();
         body = GetComponent<Rigidbody2D>();
         originalScale = transform.localScale;
         audioSource = GetComponent<AudioSource>();
+
+        // Cache reference to the DialogueManager
+        dialogueManager = FindObjectOfType<DialogueManager>();
     }
 
     private void Update()
     {
+        // Disable movement if dialogue is active
+        if (dialogueManager != null && dialogueManager.IsDialogueActive())
+        {
+            anim.SetBool("Run", false);
+            anim.SetBool("Grounded", grounded);
+            return;
+        }
+
         float horizontalInput = Input.GetAxis("Horizontal");
 
         if (!gliding && !dashing && !wallSliding)
@@ -63,28 +76,27 @@ public class PlayerMovement : MonoBehaviour
         anim.SetBool("Grounded", grounded);
     }
 
-private void Move(float horizontalInput)
-{
-    body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
-
-    if (horizontalInput > 0.01f)
-        transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
-    else if (horizontalInput < -0.01f)
-        transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
-
-    // Only play movement sound if the player is grounded
-    if (horizontalInput != 0 && grounded && !audioSource.isPlaying)
+    private void Move(float horizontalInput)
     {
-        audioSource.clip = moveSound;
-        audioSource.loop = true;
-        audioSource.Play();
-    }
-    else if ((horizontalInput == 0 || !grounded) && audioSource.isPlaying)
-    {
-        audioSource.Stop();
-    }
-}
+        body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
 
+        if (horizontalInput > 0.01f)
+            transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
+        else if (horizontalInput < -0.01f)
+            transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
+
+        // Only play movement sound if the player is grounded
+        if (horizontalInput != 0 && grounded && !audioSource.isPlaying)
+        {
+            audioSource.clip = moveSound;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+        else if ((horizontalInput == 0 || !grounded) && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+    }
 
     private void Jump()
     {
