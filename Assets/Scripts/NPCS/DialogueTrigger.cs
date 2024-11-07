@@ -11,12 +11,12 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private TextAsset inkJSON;
 
     private bool playerInRange;
-    private bool hasTalked; // Flag to track if the NPC has been interacted with
+    private bool hasTalked;
 
     private void Awake()
     {
         playerInRange = false;
-        hasTalked = false; // NPC starts as "not talked to"
+        hasTalked = false;
         visualCue.SetActive(false);
     }
 
@@ -33,9 +33,9 @@ public class DialogueTrigger : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.E))
             {
-                visualCue.SetActive(false); // Hide the visual cue
+                visualCue.SetActive(false);
                 dialogueManager.StartInkDialogue(new Ink.Runtime.Story(inkJSON.text), transform);
-                hasTalked = true; // Mark as "talked to"
+                hasTalked = true;
             }
         }
         else

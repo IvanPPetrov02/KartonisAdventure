@@ -6,7 +6,7 @@ Kartoni: "Looking for me? What’s going on?"
 Azia: "Yeah, last night, you went a little... overboard. I found you drunk in this hotel. Thought I’d stick around to make sure you didn’t get into more trouble."
 
 + "Do you know where my stuff is? I need my inventory for the concert... and my clothes." ->
-    Azia: "Ah, right. Your stuff. Well, some of it’s already been found. My son picked up a few things. You should find him on the street outside."
+    Azia: "Ah, right. Your stuff. Some of it’s already been found. Your older son picked up a few things and he's waiting outside with them."
     -> End
 
 + "Wait... were you the one who stole my stuff?" ->

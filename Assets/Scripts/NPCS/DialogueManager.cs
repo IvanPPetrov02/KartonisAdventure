@@ -12,6 +12,9 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private GameObject choicesPanel;
     [SerializeField] private TextMeshProUGUI[] choiceTexts;
 
+    [Header("Existing Item to Reveal")]
+    [SerializeField] private GameObject shoesObject; // Assign the shoes object in the scene
+
     private Story currentStory;
     private bool dialogueActive = false;
     private Transform currentNPC;
@@ -34,6 +37,12 @@ public class DialogueManager : MonoBehaviour
         else
         {
             Debug.Log("Player Health component successfully found.");
+        }
+
+        // Ensure shoesObject is initially invisible
+        if (shoesObject != null)
+        {
+            shoesObject.SetActive(false);
         }
     }
 
@@ -75,6 +84,13 @@ public class DialogueManager : MonoBehaviour
                 }
             }
 
+            // Check for "jump double" in the dialogue
+            if (nextLine.Contains("jump double"))
+            {
+                Debug.Log("Double Jump detected! Making shoes visible...");
+                RevealShoes();
+            }
+
             yield return new WaitForSeconds(2f);
         }
 
@@ -110,7 +126,6 @@ public class DialogueManager : MonoBehaviour
         HighlightChoice(0); // Highlight the first choice by default
     }
 
-
     private void HighlightChoice(int choiceIndex)
     {
         for (int i = 0; i < choiceTexts.Length; i++)
@@ -144,7 +159,6 @@ public class DialogueManager : MonoBehaviour
             HandleChoiceSelection();
         }
     }
-
 
     private void HandleChoiceSelection()
     {
@@ -194,5 +208,17 @@ public class DialogueManager : MonoBehaviour
         textElement.fontSizeMax = 50;
         textElement.fontSizeMin = 20;
         textElement.ForceMeshUpdate();
+    }
+
+    private void RevealShoes()
+    {
+        if (shoesObject != null)
+        {
+            shoesObject.SetActive(true); // Make the shoes visible
+        }
+        else
+        {
+            Debug.LogError("Shoes object not assigned!");
+        }
     }
 }

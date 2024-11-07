@@ -3,11 +3,12 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-    public GameObject pauseMenuUI; // Assign the Canvas object in the Inspector
+    public GameObject pauseMenuUI; // Drag the PauseMenu Panel here in the Inspector
     private bool isPaused = false;
 
     void Update()
     {
+        // Toggle pause menu with Esc key
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (isPaused)
@@ -19,27 +20,27 @@ public class PauseMenu : MonoBehaviour
 
     public void ResumeGame()
     {
-        pauseMenuUI.SetActive(false);
-        Time.timeScale = 1f; // Resume time
+        pauseMenuUI.SetActive(false); // Hide the pause menu
+        Time.timeScale = 1f; // Resume the game
         isPaused = false;
     }
 
     public void PauseGame()
     {
-        pauseMenuUI.SetActive(true);
-        Time.timeScale = 0f; // Pause time
+        pauseMenuUI.SetActive(true); // Show the pause menu
+        Time.timeScale = 0f; // Pause the game
         isPaused = true;
     }
 
     public void RestartGame()
     {
         Time.timeScale = 1f; // Ensure time resumes
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name); // Reload the current scene
     }
 
     public void ExitToMainMenu()
     {
         Time.timeScale = 1f; // Ensure time resumes
-        SceneManager.LoadScene("StartMenu"); // Replace "StartMenu" with your actual start menu scene name
+        SceneManager.LoadScene("Main menu"); // Replace "StartMenu" with your start menu scene name
     }
 }

@@ -37,18 +37,16 @@ public class PlayerMovement : MonoBehaviour
         body = GetComponent<Rigidbody2D>();
         originalScale = transform.localScale;
         audioSource = GetComponent<AudioSource>();
-
-        // Cache reference to the DialogueManager
         dialogueManager = FindObjectOfType<DialogueManager>();
     }
 
     private void Update()
     {
-        // Disable movement if dialogue is active
         if (dialogueManager != null && dialogueManager.IsDialogueActive())
         {
             anim.SetBool("Run", false);
             anim.SetBool("Grounded", grounded);
+            StopWalkingSound();
             return;
         }
 
@@ -63,17 +61,33 @@ public class PlayerMovement : MonoBehaviour
             body.velocity = new Vector2(glideDirection * glideSpeed, body.velocity.y);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && currentJumps < maxJumps)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            Jump();
+            if (currentJumps > 0)
+            {
+                Jump();
+            }
         }
 
-        HandleGliding();
-        HandleDashing();
-        HandleGuitarHit();
+        if (AbilityManager.Instance.CanGlide)
+        {
+            HandleGliding();
+        }
+
+        if (AbilityManager.Instance.CanDash)
+        {
+            HandleDashing();
+        }
+
+        if (AbilityManager.Instance.CanBreak)
+        {
+            HandleGuitarHit();
+        }
 
         anim.SetBool("Run", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
+
+        HandleWalkingSound(horizontalInput);
     }
 
     private void Move(float horizontalInput)
@@ -84,18 +98,6 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
         else if (horizontalInput < -0.01f)
             transform.localScale = new Vector3(-originalScale.x, originalScale.y, originalScale.z);
-
-        // Only play movement sound if the player is grounded
-        if (horizontalInput != 0 && grounded && !audioSource.isPlaying)
-        {
-            audioSource.clip = moveSound;
-            audioSource.loop = true;
-            audioSource.Play();
-        }
-        else if ((horizontalInput == 0 || !grounded) && audioSource.isPlaying)
-        {
-            audioSource.Stop();
-        }
     }
 
     private void Jump()
@@ -105,9 +107,34 @@ public class PlayerMovement : MonoBehaviour
         body.velocity = new Vector2(body.velocity.x, jumpForce);
         anim.SetTrigger("Jump");
         audioSource.PlayOneShot(jumpSound);
-
-        currentJumps++;
+        currentJumps--;
         grounded = false;
+        StopWalkingSound();
+    }
+
+    private void HandleWalkingSound(float horizontalInput)
+    {
+        if (grounded && Mathf.Abs(horizontalInput) > 0.01f)
+        {
+            if (!audioSource.isPlaying || audioSource.clip != moveSound)
+            {
+                audioSource.clip = moveSound;
+                audioSource.loop = true; // Ensure the sound loops while walking
+                audioSource.Play();
+            }
+        }
+        else
+        {
+            StopWalkingSound();
+        }
+    }
+
+    private void StopWalkingSound()
+    {
+        if (audioSource.isPlaying && audioSource.clip == moveSound)
+        {
+            audioSource.Stop();
+        }
     }
 
     private void HandleGliding()
@@ -206,31 +233,16 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
-            HandleGroundCollision(collision);
+            grounded = true;
+
+            currentJumps = AbilityManager.Instance.CanDoubleJump ? maxJumps : 1;
+
+            StopGliding();
+            StopWallSlide();
         }
         else if (collision.gameObject.CompareTag("Wall"))
         {
             HandleWallCollision();
-        }
-    }
-
-    private void HandleGroundCollision(Collision2D collision)
-    {
-        foreach (ContactPoint2D contact in collision.contacts)
-        {
-            if (contact.normal == Vector2.up)
-            {
-                grounded = true;
-                currentJumps = 0;
-                StopGliding();
-                StopWallSlide();
-                return;
-            }
-            else if (contact.normal == Vector2.left || contact.normal == Vector2.right)
-            {
-                StartWallSlide();
-                return;
-            }
         }
     }
 
@@ -251,6 +263,7 @@ public class PlayerMovement : MonoBehaviour
         {
             grounded = false;
             StopWallSlide();
+            StopWalkingSound();
         }
     }
 
