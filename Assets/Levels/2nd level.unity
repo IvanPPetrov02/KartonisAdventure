@@ -15702,7 +15702,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visualCue: {fileID: 1862237910}
-  inkJSON: {fileID: 4900000, guid: 0d0434e77615c7043b658a39c2d600f5, type: 3}
+  inkJSON: {fileID: 4900000, guid: 268597226feb33046b6650af9ab32a03, type: 3}
 --- !u!61 &1566459201
 BoxCollider2D:
   m_ObjectHideFlags: 0

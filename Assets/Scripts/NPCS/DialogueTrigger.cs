@@ -11,20 +11,26 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private TextAsset inkJSON;
 
     private bool playerInRange;
-    private bool hasTalked;
+    private Collider2D npcCollider;
 
     private void Awake()
     {
         playerInRange = false;
-        hasTalked = false;
         visualCue.SetActive(false);
+
+        // Get the NPC's collider
+        npcCollider = GetComponent<Collider2D>();
+        if (npcCollider == null)
+        {
+            Debug.LogError("No Collider2D found on the NPC. Please add one.");
+        }
     }
 
     private void Update()
     {
         DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
 
-        if (playerInRange && !hasTalked && !dialogueManager.IsDialogueActive())
+        if (playerInRange && !dialogueManager.IsDialogueActive())
         {
             if (!visualCue.activeSelf)
             {
@@ -35,7 +41,9 @@ public class DialogueTrigger : MonoBehaviour
             {
                 visualCue.SetActive(false);
                 dialogueManager.StartInkDialogue(new Ink.Runtime.Story(inkJSON.text), transform);
-                hasTalked = true;
+
+                // Permanently remove the NPC's collider
+                RemoveCollider();
             }
         }
         else
@@ -60,6 +68,15 @@ public class DialogueTrigger : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerInRange = false;
+        }
+    }
+
+    private void RemoveCollider()
+    {
+        if (npcCollider != null)
+        {
+            Destroy(npcCollider); // Permanently remove the collider
+            npcCollider = null;  // Ensure we don't reference the destroyed collider
         }
     }
 }
