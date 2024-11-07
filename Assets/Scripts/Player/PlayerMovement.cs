@@ -213,6 +213,7 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.B))
         {
             BreakWallWithGuitar();
+            anim.SetTrigger("Break");
         }
     }
 

@@ -4,53 +4,34 @@ using UnityEngine;
 
 public class DialogueTrigger : MonoBehaviour
 {
-    [Header("Visual Cue")]
-    [SerializeField] private GameObject visualCue;
-
     [Header("Ink JSON")]
     [SerializeField] private TextAsset inkJSON;
 
-    private bool playerInRange;
+    [Header("Player Reference")]
+    [SerializeField] private Transform playerTransform; // Reference to the player
+
     private Collider2D npcCollider;
 
     private void Awake()
     {
-        playerInRange = false;
-        visualCue.SetActive(false);
-
-        // Get the NPC's collider
+        // Get the collider for this object
         npcCollider = GetComponent<Collider2D>();
         if (npcCollider == null)
         {
-            Debug.LogError("No Collider2D found on the NPC. Please add one.");
+            Debug.LogError($"No Collider2D found on {gameObject.name}. Please add one.");
         }
-    }
 
-    private void Update()
-    {
-        DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
-
-        if (playerInRange && !dialogueManager.IsDialogueActive())
+        // Find the player if not assigned
+        if (playerTransform == null)
         {
-            if (!visualCue.activeSelf)
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
             {
-                visualCue.SetActive(true);
+                playerTransform = player.transform;
             }
-
-            if (Input.GetKeyDown(KeyCode.E))
+            else
             {
-                visualCue.SetActive(false);
-                dialogueManager.StartInkDialogue(new Ink.Runtime.Story(inkJSON.text), transform);
-
-                // Permanently remove the NPC's collider
-                RemoveCollider();
-            }
-        }
-        else
-        {
-            if (visualCue.activeSelf)
-            {
-                visualCue.SetActive(false);
+                Debug.LogError("Player not found in the scene. Make sure your player is tagged 'Player'.");
             }
         }
     }
@@ -59,15 +40,30 @@ public class DialogueTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            playerInRange = true;
+            Debug.Log($"Player entered the trigger of {gameObject.name}.");
+
+            // Trigger dialogue immediately
+            TriggerDialogue();
         }
     }
 
-    private void OnTriggerExit2D(Collider2D other)
+    private void TriggerDialogue()
     {
-        if (other.CompareTag("Player"))
+        DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
+        if (!dialogueManager.IsDialogueActive())
         {
-            playerInRange = false;
+            Transform dialoguePosition = transform;
+
+            // If this is an empty trigger, use the player's position for dialogue
+            if (npcCollider == null)
+            {
+                dialoguePosition = playerTransform;
+            }
+
+            dialogueManager.StartInkDialogue(new Ink.Runtime.Story(inkJSON.text), dialoguePosition);
+
+            // Remove the collider after interaction
+            RemoveCollider();
         }
     }
 
@@ -75,6 +71,7 @@ public class DialogueTrigger : MonoBehaviour
     {
         if (npcCollider != null)
         {
+            Debug.Log($"Removing collider from {gameObject.name}.");
             Destroy(npcCollider); // Permanently remove the collider
             npcCollider = null;  // Ensure we don't reference the destroyed collider
         }
