@@ -51,15 +51,23 @@ public class DialogueManager : MonoBehaviour
         return dialogueActive;
     }
 
-    public void StartInkDialogue(Story story, Transform npcTransform)
+    public void StartInkDialogue(Story story, Transform targetTransform)
     {
         currentStory = story;
-        currentNPC = npcTransform;
+
+        // Position the dialogue panel above the target
+        Vector3 targetPosition = targetTransform.position;
+        targetPosition.y += 2.0f; // Offset above the target
+        dialoguePanel.transform.position = Camera.main.WorldToScreenPoint(targetPosition);
+
         dialoguePanel.SetActive(true);
         dialogueActive = true;
 
         StartCoroutine(ShowNextSentenceWithDelay());
     }
+
+
+
 
     private IEnumerator ShowNextSentenceWithDelay()
     {
