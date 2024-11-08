@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Ground
+  - Item
+  - MovingBox
+  - Wall
   layers:
   - Default
   - TransparentFX
@@ -11,7 +15,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Breakable
   - 
   - 
   - 
@@ -40,4 +44,16 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 3156748073
+    locked: 0
+  - name: Foreground
+    uniqueID: 2626049127
+    locked: 0
+  - name: Player
+    uniqueID: 1565868311
+    locked: 0
+  - name: Ground
+    uniqueID: 21913193
     locked: 0
