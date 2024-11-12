@@ -3842,7 +3842,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -894.7, y: 22}
+  m_AnchoredPosition: {x: -947.6, y: 20}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &321583541
@@ -8536,8 +8536,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1668918169
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 30efc48b1a6b00a47aaf7c5fc3cd6272, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -18523,7 +18523,7 @@ GameObject:
   - component: {fileID: 1763181421}
   - component: {fileID: 1763181420}
   m_Layer: 0
-  m_Name: Flower pot
+  m_Name: chadur
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18567,8 +18567,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1668918169
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: e54aa2a439f2c8c4a891e6187b746787, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -21797,8 +21797,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -1668918169
-  m_SortingLayer: 2
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: d29533bb546d732469b23714bbc01f27, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -21820,7 +21820,7 @@ Transform:
   m_GameObject: {fileID: 2005852919}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -765.5468, y: 22.46, z: 0}
+  m_LocalPosition: {x: -765.83, y: 22.64, z: 0}
   m_LocalScale: {x: 3.9826438, y: 4.7332, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

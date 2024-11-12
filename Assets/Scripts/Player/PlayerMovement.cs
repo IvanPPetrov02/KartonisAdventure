@@ -56,17 +56,10 @@ public class PlayerMovement : MonoBehaviour
         {
             Move(horizontalInput);
         }
-        else if (gliding)
-        {
-            body.velocity = new Vector2(glideDirection * glideSpeed, body.velocity.y);
-        }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && currentJumps > 0)
         {
-            if (currentJumps > 0)
-            {
-                Jump();
-            }
+            Jump();
         }
 
         if (AbilityManager.Instance.CanGlide)
@@ -234,49 +227,81 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
-            grounded = true;
-
-            currentJumps = AbilityManager.Instance.CanDoubleJump ? maxJumps : 1;
-
-            StopGliding();
-            StopWallSlide();
-        }
-        else if (collision.gameObject.CompareTag("Wall"))
-        {
-            HandleWallCollision();
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (IsSideCollision(contact.normal))
+                {
+                    StartWallSlide();
+                    return;
+                }
+                else if (IsTopCollision(contact.normal))
+                {
+                    grounded = true;
+                    currentJumps = maxJumps;
+                    StopWallSlide();
+                    return;
+                }
+            }
         }
     }
 
-    private void HandleWallCollision()
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        grounded = true;
-        if (currentJumps >= maxJumps)
+        if (collision.gameObject.CompareTag("Ground"))
         {
-            currentJumps = maxJumps - 1;
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (IsSideCollision(contact.normal))
+                {
+                    StartWallSlide();
+                    return;
+                }
+                else if (IsTopCollision(contact.normal))
+                {
+                    grounded = true;
+                    StopWallSlide();
+                    return;
+                }
+            }
         }
-        StopGliding();
-        StopWallSlide();
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Wall"))
+        if (collision.gameObject.CompareTag("Ground"))
         {
             grounded = false;
             StopWallSlide();
-            StopWalkingSound();
         }
     }
 
     private void StartWallSlide()
     {
+        if (grounded || wallSliding) return;
+
         wallSliding = true;
-        body.velocity = new Vector2(0, -wallSlideSpeed);
+
+        body.velocity = new Vector2(body.velocity.x, Mathf.Max(body.velocity.y, -wallSlideSpeed));
+
+        anim.SetBool("WallSlide", true);
     }
 
     private void StopWallSlide()
     {
+        if (!wallSliding) return;
+
         wallSliding = false;
+        anim.SetBool("WallSlide", false);
+    }
+
+    private bool IsTopCollision(Vector2 normal)
+    {
+        return Vector2.Dot(normal, Vector2.up) > 0.5f;
+    }
+
+    private bool IsSideCollision(Vector2 normal)
+    {
+        return Mathf.Abs(Vector2.Dot(normal, Vector2.right)) > 0.5f;
     }
 
     private void OnDrawGizmosSelected()
