@@ -95,15 +95,24 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
+        if (!grounded && !AbilityManager.Instance.CanDoubleJump && currentJumps <= 1)
+            return;
+        
         StopWallSlide();
         StopGliding();
         body.velocity = new Vector2(body.velocity.x, jumpForce);
         anim.SetTrigger("Jump");
-        audioSource.PlayOneShot(jumpSound);
+        
+        if (audioSource != null && jumpSound != null)
+        {
+            audioSource.PlayOneShot(jumpSound);
+        }
+        
         currentJumps--;
         grounded = false;
         StopWalkingSound();
     }
+
 
     private void HandleWalkingSound(float horizontalInput)
     {
@@ -112,7 +121,7 @@ public class PlayerMovement : MonoBehaviour
             if (!audioSource.isPlaying || audioSource.clip != moveSound)
             {
                 audioSource.clip = moveSound;
-                audioSource.loop = true; // Ensure the sound loops while walking
+                audioSource.loop = true;
                 audioSource.Play();
             }
         }

@@ -8,20 +8,18 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private TextAsset inkJSON;
 
     [Header("Player Reference")]
-    [SerializeField] private Transform playerTransform; // Reference to the player
+    [SerializeField] private Transform playerTransform;
 
     private Collider2D npcCollider;
 
     private void Awake()
     {
-        // Get the collider for this object
         npcCollider = GetComponent<Collider2D>();
         if (npcCollider == null)
         {
             Debug.LogError($"No Collider2D found on {gameObject.name}. Please add one.");
         }
-
-        // Find the player if not assigned
+        
         if (playerTransform == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -41,8 +39,7 @@ public class DialogueTrigger : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             Debug.Log($"Player entered the trigger of {gameObject.name}.");
-
-            // Trigger dialogue immediately
+            
             TriggerDialogue();
         }
     }
@@ -53,16 +50,14 @@ public class DialogueTrigger : MonoBehaviour
         if (!dialogueManager.IsDialogueActive())
         {
             Transform dialoguePosition = transform;
-
-            // If this is an empty trigger, use the player's position for dialogue
+            
             if (npcCollider == null)
             {
                 dialoguePosition = playerTransform;
             }
 
             dialogueManager.StartInkDialogue(new Ink.Runtime.Story(inkJSON.text), dialoguePosition);
-
-            // Remove the collider after interaction
+            
             RemoveCollider();
         }
     }
@@ -72,8 +67,8 @@ public class DialogueTrigger : MonoBehaviour
         if (npcCollider != null)
         {
             Debug.Log($"Removing collider from {gameObject.name}.");
-            Destroy(npcCollider); // Permanently remove the collider
-            npcCollider = null;  // Ensure we don't reference the destroyed collider
+            Destroy(npcCollider);
+            npcCollider = null;
         }
     }
 }
