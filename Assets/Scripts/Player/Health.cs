@@ -83,7 +83,7 @@ public class Health : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-
+/*
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Spike") || collision.gameObject.CompareTag("Enemy"))
@@ -92,6 +92,7 @@ public class Health : MonoBehaviour
             TakeDamage(1);
         }
     }
+    
 
     private void OnTriggerExit2D(Collider2D collision)
     {
@@ -100,6 +101,7 @@ public class Health : MonoBehaviour
             isInDamageZone = false;
         }
     }
+    */
 
     private void ActivateIframes()
     {
