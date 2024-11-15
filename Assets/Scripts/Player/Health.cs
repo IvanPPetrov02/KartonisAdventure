@@ -81,7 +81,14 @@ public class Health : MonoBehaviour
 
     private void ReloadScene()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Destroy the AbilityManager to ensure it is reinitialized on scene reload
+        if (AbilityManager.Instance != null)
+        {
+            Destroy(AbilityManager.Instance.gameObject);
+        }
+
+        // Reload the current scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 /*
     private void OnTriggerEnter2D(Collider2D collision)
