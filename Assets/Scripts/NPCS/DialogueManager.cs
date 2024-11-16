@@ -7,43 +7,47 @@ using TMPro;
 public class DialogueManager : MonoBehaviour
 {
     [Header("UI Elements")]
-    [SerializeField] private GameObject dialoguePanel;
-    [SerializeField] private TextMeshProUGUI dialogueText;
-    [SerializeField] private GameObject choicesPanel;
-    [SerializeField] private TextMeshProUGUI[] choiceTexts;
+    [SerializeField] private GameObject dialoguePanel; // The main dialogue panel
+    [SerializeField] private TextMeshProUGUI dialogueText; // Dialogue text box
+    [SerializeField] private GameObject choicesPanel; // Choices panel
+    [SerializeField] private TextMeshProUGUI[] choiceTexts; // Choice options
+
+    [Header("Visual Cue Management")]
+    [SerializeField] private GameObject visualCue; // Reference to the NPC's visual cue
 
     [Header("Existing Item to Reveal")]
-    [SerializeField] private GameObject shoesObject; // Assign the shoes object in the scene
+    [SerializeField] private GameObject shoesObject; // Optional object to reveal (example)
 
-    private Story currentStory;
-    private bool dialogueActive = false;
-    private Transform currentNPC;
-    private Camera mainCamera;
+    private Story currentStory; // Holds the Ink story runtime instance
+    private bool dialogueActive = false; // Tracks if dialogue is ongoing
+    private bool skipMode = false; // Tracks if dialogue is being skipped
+    private float skipTimer = 0f; // Tracks how long the skip key is held
+    private const float skipThreshold = 3f; // Time in seconds to skip dialogue entirely
 
-    private int currentChoiceIndex = 0; // Tracks the currently selected choice
-    private Health playerHealth; // Reference to the player's health system
+    private int currentChoiceIndex = 0; // Current choice being highlighted
+    private Health playerHealth; // Reference to the player's health (example)
+
+    public delegate void DialogueEndHandler();
+    public event DialogueEndHandler OnDialogueEnd;
 
     private void Awake()
     {
-        mainCamera = Camera.main;
+        // Ensure dialogue and choices panels are initially hidden
+        dialoguePanel.SetActive(false);
         choicesPanel.SetActive(false);
 
-        // Find the Player's Health component
+        // Find the player's health component (if used)
         playerHealth = FindObjectOfType<Health>();
         if (playerHealth == null)
-        {
-            Debug.LogError("Player Health component not found in the scene.");
-        }
-        else
-        {
-            Debug.Log("Player Health component successfully found.");
-        }
+            Debug.LogError("Player Health component not found.");
 
-        // Ensure shoesObject is initially invisible
+        // Ensure any interactable objects are initially hidden
         if (shoesObject != null)
-        {
             shoesObject.SetActive(false);
-        }
+
+        // Ensure visual cue starts inactive
+        if (visualCue != null)
+            visualCue.SetActive(false);
     }
 
     public bool IsDialogueActive()
@@ -55,72 +59,44 @@ public class DialogueManager : MonoBehaviour
     {
         currentStory = story;
 
-        // Position the dialogue panel above the target
-        Vector3 targetPosition = targetTransform.position;
-        targetPosition.y += 2.0f; // Offset above the target
-        dialoguePanel.transform.position = Camera.main.WorldToScreenPoint(targetPosition);
-
+        // Activate dialogue panel and start dialogue
         dialoguePanel.SetActive(true);
         dialogueActive = true;
 
-        StartCoroutine(ShowNextSentenceWithDelay());
+        // Show the first sentence
+        ShowNextSentence();
     }
 
-
-
-
-    private IEnumerator ShowNextSentenceWithDelay()
+    private void ShowNextSentence()
     {
-        while (currentStory.canContinue)
+        if (currentStory.canContinue)
         {
+            // Display the next line of dialogue
             string nextLine = currentStory.Continue();
             dialogueText.text = nextLine.Trim();
             AutoSizeText(dialogueText);
-
-            // Check for the word "SLAP" in the current dialogue line
-            if (nextLine.Contains("SLAP"))
-            {
-                Debug.Log("SLAP detected in dialogue!");
-                if (playerHealth != null)
-                {
-                    playerHealth.TakeDamage(1);
-                    Debug.Log($"Player took 1 damage. Current health: {playerHealth.currentHealth}");
-                }
-                else
-                {
-                    Debug.LogError("Player Health component is null!");
-                }
-            }
-
-            // Check for "jump double" in the dialogue
-            if (nextLine.Contains("jump double"))
-            {
-                Debug.Log("Double Jump detected! Making shoes visible...");
-                RevealShoes();
-            }
-
-            yield return new WaitForSeconds(2f);
         }
-
-        if (currentStory.currentChoices.Count > 0)
+        else if (currentStory.currentChoices.Count > 0)
         {
+            // If choices are available, display them
             ShowChoices();
         }
         else
         {
+            // End the dialogue if no more lines or choices are available
             EndDialogue();
         }
     }
 
     private void ShowChoices()
     {
-        // Keep the main dialogue text visible
         choicesPanel.SetActive(true);
 
         for (int i = 0; i < choiceTexts.Length; i++)
         {
             if (i < currentStory.currentChoices.Count)
             {
+                // Display each choice text
                 choiceTexts[i].gameObject.SetActive(true);
                 choiceTexts[i].text = currentStory.currentChoices[i].text;
                 AutoSizeText(choiceTexts[i]);
@@ -140,7 +116,7 @@ public class DialogueManager : MonoBehaviour
         {
             if (i == choiceIndex)
             {
-                choiceTexts[i].text = $"<u>{currentStory.currentChoices[i].text}</u>";
+                choiceTexts[i].text = $"<color=#00FF00><b>{currentStory.currentChoices[i].text}</b></color>";
             }
             else
             {
@@ -151,20 +127,52 @@ public class DialogueManager : MonoBehaviour
 
     private void Update()
     {
-        if (currentNPC != null)
+        if (dialogueActive && !choicesPanel.activeSelf) // Skip logic only when choices aren't visible
         {
-            Vector3 npcScreenPosition = mainCamera.WorldToScreenPoint(currentNPC.position);
-            npcScreenPosition.y += 150;
-            dialoguePanel.transform.position = npcScreenPosition;
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                skipTimer = 0f; // Reset timer on key press
+                ShowNextSentence(); // Manually advance the dialogue
+            }
 
-            Vector3 choicesPosition = dialoguePanel.transform.position;
-            choicesPosition.y -= 100; // Offset for the choices panel
-            choicesPanel.transform.position = choicesPosition;
+            if (Input.GetKey(KeyCode.E))
+            {
+                skipTimer += Time.deltaTime;
+
+                if (skipTimer >= skipThreshold)
+                {
+                    SkipUntilChoiceOrEnd();
+                }
+            }
+
+            if (Input.GetKeyUp(KeyCode.E))
+            {
+                skipTimer = 0f; // Reset timer when key is released
+            }
         }
 
-        if (dialogueActive && choicesPanel.activeSelf)
+        if (dialogueActive && choicesPanel.activeSelf) // Handle choice navigation
         {
             HandleChoiceSelection();
+        }
+    }
+
+    private void SkipUntilChoiceOrEnd()
+    {
+        while (currentStory.canContinue)
+        {
+            string nextLine = currentStory.Continue();
+            dialogueText.text = nextLine.Trim();
+            AutoSizeText(dialogueText);
+        }
+
+        if (currentStory.currentChoices.Count > 0)
+        {
+            ShowChoices();
+        }
+        else
+        {
+            EndDialogue();
         }
     }
 
@@ -182,7 +190,7 @@ public class DialogueManager : MonoBehaviour
             HighlightChoice(currentChoiceIndex);
         }
 
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             MakeChoice(currentChoiceIndex);
         }
@@ -194,20 +202,48 @@ public class DialogueManager : MonoBehaviour
 
         foreach (string tag in currentStory.currentTags)
         {
-            Debug.Log($"Tag found: {tag}");
+            HandleTags(tag);
         }
 
         choicesPanel.SetActive(false);
         currentChoiceIndex = 0;
 
-        StartCoroutine(ShowNextSentenceWithDelay());
+        ShowNextSentence();
+    }
+
+    private void HandleTags(string tag)
+    {
+        switch (tag)
+        {
+            case "SwordGiven":
+                Debug.Log("Player received the sword!");
+                break;
+            case "TakeDamage":
+                if (playerHealth != null)
+                {
+                    playerHealth.TakeDamage(1);
+                    Debug.Log("Player took damage.");
+                }
+                break;
+            default:
+                Debug.Log($"Unhandled tag: {tag}");
+                break;
+        }
     }
 
     private void EndDialogue()
     {
-        dialoguePanel.SetActive(false);
+        dialoguePanel.SetActive(false); // Hide dialogue panel
         dialogueActive = false;
-        currentNPC = null;
+
+        // Deactivate the visual cue
+        if (visualCue != null)
+        {
+            visualCue.SetActive(false);
+        }
+
+        // Trigger the OnDialogueEnd event
+        OnDialogueEnd?.Invoke();
     }
 
     private void AutoSizeText(TextMeshProUGUI textElement)
@@ -216,17 +252,5 @@ public class DialogueManager : MonoBehaviour
         textElement.fontSizeMax = 50;
         textElement.fontSizeMin = 20;
         textElement.ForceMeshUpdate();
-    }
-
-    private void RevealShoes()
-    {
-        if (shoesObject != null)
-        {
-            shoesObject.SetActive(true); // Make the shoes visible
-        }
-        else
-        {
-            Debug.LogError("Shoes object not assigned!");
-        }
     }
 }
