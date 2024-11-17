@@ -23,7 +23,48 @@ public class AbilityManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        InitializeAbilities();
     }
+
+    private void InitializeAbilities()
+    {
+        ResetAbilities();
+    }
+
+    public void ResetAbilities()
+    {
+        // Lock all abilities
+        CanDoubleJump = false;
+        CanGlide = false;
+        CanDash = false;
+        CanBreak = false;
+
+        // Explicitly set all ability icons to inactive (hidden)
+        if (doubleJumpIcon != null)
+        {
+            doubleJumpIcon.SetActive(false);
+            Debug.Log("Double Jump Icon is now hidden.");
+        }
+        if (glideIcon != null)
+        {
+            glideIcon.SetActive(false);
+            Debug.Log("Glide Icon is now hidden.");
+        }
+        if (dashIcon != null)
+        {
+            dashIcon.SetActive(false);
+            Debug.Log("Dash Icon is now hidden.");
+        }
+        if (breakIcon != null)
+        {
+            breakIcon.SetActive(false);
+            Debug.Log("Break Icon is now hidden.");
+        }
+
+        Debug.Log("Abilities have been reset, and all icons are now hidden.");
+    }
+
 
     public void UnlockDoubleJump()
     {

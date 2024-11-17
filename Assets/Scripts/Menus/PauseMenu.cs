@@ -34,13 +34,35 @@ public class PauseMenu : MonoBehaviour
 
     public void RestartGame()
     {
-        Time.timeScale = 1f; // Ensure time resumes
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name); // Reload the current scene
+        Time.timeScale = 1f; // Resume time
+
+        // Destroy the AbilityManager to ensure it is reinitialized on scene reload
+        if (AbilityManager.Instance != null)
+        {
+            Destroy(AbilityManager.Instance.gameObject);
+        }
+
+        // Reload the current scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void ExitToMainMenu()
     {
-        Time.timeScale = 1f; // Ensure time resumes
-        SceneManager.LoadScene("Main menu"); // Replace "StartMenu" with your start menu scene name
+        Time.timeScale = 1f; // Resume time
+
+        // Stop the current music
+        if (AudioManager.instance != null)
+        {
+            AudioManager.instance.StopMusic();
+        }
+
+        // Destroy the AbilityManager if transitioning to a completely different scene
+        if (AbilityManager.Instance != null)
+        {
+            Destroy(AbilityManager.Instance.gameObject);
+        }
+
+        // Load the main menu scene
+        SceneManager.LoadScene("Main menu"); // Replace with your actual main menu scene name
     }
 }

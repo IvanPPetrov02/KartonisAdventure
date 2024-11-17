@@ -5,12 +5,12 @@ public class StartMenu : MonoBehaviour
 {
     public void StartNewGame()
     {
-        SceneManager.LoadScene("2nd level"); // Ensure your scene name is exactly "2nd level"
+        SceneManager.LoadScene("2nd level", LoadSceneMode.Single);
     }
 
     public void QuitGame()
     {
         Application.Quit();
-        Debug.Log("Game Quit"); // This will log the message in the Unity Editor (won't show in a build)
+        Debug.Log("Game Quit");
     }
 }

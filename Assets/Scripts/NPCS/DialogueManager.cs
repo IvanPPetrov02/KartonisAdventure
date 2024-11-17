@@ -12,38 +12,32 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private GameObject choicesPanel;
     [SerializeField] private TextMeshProUGUI[] choiceTexts;
 
-    [Header("Existing Item to Reveal")]
-    [SerializeField] private GameObject shoesObject; // Assign the shoes object in the scene
+    [Header("Visual Cue Management")]
+    [SerializeField] private GameObject visualCue;
+
+    [Header("Objects to Disappear")]
+    [SerializeField] private List<GameObject> objectsToDisappear;
 
     private Story currentStory;
     private bool dialogueActive = false;
-    private Transform currentNPC;
-    private Camera mainCamera;
+    private float skipTimer = 0f;
+    private const float skipThreshold = 2f;
 
-    private int currentChoiceIndex = 0; // Tracks the currently selected choice
-    private Health playerHealth; // Reference to the player's health system
+    private int currentChoiceIndex = 0;
+
+    public delegate void SpecialPhraseHandler(string phrase);
+    public event SpecialPhraseHandler OnSpecialPhraseDetected;
+
+    public delegate void DialogueEndHandler();
+    public event DialogueEndHandler OnDialogueEnd;
 
     private void Awake()
     {
-        mainCamera = Camera.main;
+        dialoguePanel.SetActive(false);
         choicesPanel.SetActive(false);
 
-        // Find the Player's Health component
-        playerHealth = FindObjectOfType<Health>();
-        if (playerHealth == null)
-        {
-            Debug.LogError("Player Health component not found in the scene.");
-        }
-        else
-        {
-            Debug.Log("Player Health component successfully found.");
-        }
-
-        // Ensure shoesObject is initially invisible
-        if (shoesObject != null)
-        {
-            shoesObject.SetActive(false);
-        }
+        if (visualCue != null)
+            visualCue.SetActive(false);
     }
 
     public bool IsDialogueActive()
@@ -55,21 +49,66 @@ public class DialogueManager : MonoBehaviour
     {
         currentStory = story;
 
-        // Position the dialogue panel above the target
-        Vector3 targetPosition = targetTransform.position;
-        targetPosition.y += 2.0f; // Offset above the target
-        dialoguePanel.transform.position = Camera.main.WorldToScreenPoint(targetPosition);
-
         dialoguePanel.SetActive(true);
         dialogueActive = true;
 
-        StartCoroutine(ShowNextSentenceWithDelay());
+        ShowNextSentence();
     }
 
+    private void Update()
+    {
+        if (dialogueActive && !choicesPanel.activeSelf)
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                skipTimer = 0f;
+                ShowNextSentence();
+            }
 
+            if (Input.GetKey(KeyCode.E))
+            {
+                skipTimer += Time.deltaTime;
 
+                if (skipTimer >= skipThreshold)
+                {
+                    SkipUntilChoiceOrEnd();
+                }
+            }
 
-    private IEnumerator ShowNextSentenceWithDelay()
+            if (Input.GetKeyUp(KeyCode.E))
+            {
+                skipTimer = 0f;
+            }
+        }
+
+        if (dialogueActive && choicesPanel.activeSelf)
+        {
+            HandleChoiceSelection();
+        }
+    }
+
+    private void ShowNextSentence()
+    {
+        if (currentStory.canContinue)
+        {
+            string nextLine = currentStory.Continue();
+            dialogueText.text = nextLine.Trim();
+            AutoSizeText(dialogueText);
+
+            // Check for specific phrases in the dialogue
+            CheckForSpecialPhrases(nextLine);
+        }
+        else if (currentStory.currentChoices.Count > 0)
+        {
+            ShowChoices();
+        }
+        else
+        {
+            EndDialogue();
+        }
+    }
+
+    private void SkipUntilChoiceOrEnd()
     {
         while (currentStory.canContinue)
         {
@@ -77,29 +116,8 @@ public class DialogueManager : MonoBehaviour
             dialogueText.text = nextLine.Trim();
             AutoSizeText(dialogueText);
 
-            // Check for the word "SLAP" in the current dialogue line
-            if (nextLine.Contains("SLAP"))
-            {
-                Debug.Log("SLAP detected in dialogue!");
-                if (playerHealth != null)
-                {
-                    playerHealth.TakeDamage(1);
-                    Debug.Log($"Player took 1 damage. Current health: {playerHealth.currentHealth}");
-                }
-                else
-                {
-                    Debug.LogError("Player Health component is null!");
-                }
-            }
-
-            // Check for "jump double" in the dialogue
-            if (nextLine.Contains("jump double"))
-            {
-                Debug.Log("Double Jump detected! Making shoes visible...");
-                RevealShoes();
-            }
-
-            yield return new WaitForSeconds(2f);
+            // Check for specific text in the dialogue during skip
+            CheckForSpecialPhrases(nextLine);
         }
 
         if (currentStory.currentChoices.Count > 0)
@@ -112,9 +130,51 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
+    private void CheckForSpecialPhrases(string line)
+    {
+        if (line.Contains("*Azis gives Kartoni coffee.*"))
+        {
+            AbilityManager.Instance.UnlockDash();
+            OnSpecialPhraseDetected?.Invoke("*Azis gives Kartoni coffee.*");
+        }
+        if (line.Contains("DJ Damyan: Any time!"))
+        {
+            Debug.Log("Glide ability unlocked via special phrase!");
+            AbilityManager.Instance.UnlockGlide();
+            OnSpecialPhraseDetected?.Invoke("DJ Damyan: Any time!");
+        }
+        else if (line.Contains("Fiki: Ah, right about that. I managed to find your boots—they were at the nightclub you sung at last night."))
+        {
+            Debug.Log("Double Jump ability unlocked via special phrase!");
+            AbilityManager.Instance.UnlockDoubleJump();
+            OnSpecialPhraseDetected?.Invoke("Fiki: Ah, right about that.");
+        }
+        else if (line.Contains("Koceto: Well, it’s easy. If a branch is blocking your way, just give it a nice whack with the guitar and you should be able to pass right through."))
+        {
+            Debug.Log("Break ability unlocked via special phrase!");
+            AbilityManager.Instance.UnlockBreak();
+            OnSpecialPhraseDetected?.Invoke("Koceto: Well, it’s easy.");
+        }
+        if (line.Contains("DJ Damyan: Any time!") || line.Contains("Fiki: Ah, right about that.") || line.Contains("Koceto: Well, it’s easy."))
+        {
+            MakeObjectsDisappear();
+        }
+    }
+
+    private void MakeObjectsDisappear()
+    {
+        foreach (GameObject obj in objectsToDisappear)
+        {
+            if (obj != null)
+            {
+                obj.SetActive(false);
+                Debug.Log($"{obj.name} has been made inactive.");
+            }
+        }
+    }
+
     private void ShowChoices()
     {
-        // Keep the main dialogue text visible
         choicesPanel.SetActive(true);
 
         for (int i = 0; i < choiceTexts.Length; i++)
@@ -131,7 +191,7 @@ public class DialogueManager : MonoBehaviour
             }
         }
 
-        HighlightChoice(0); // Highlight the first choice by default
+        HighlightChoice(0);
     }
 
     private void HighlightChoice(int choiceIndex)
@@ -140,31 +200,12 @@ public class DialogueManager : MonoBehaviour
         {
             if (i == choiceIndex)
             {
-                choiceTexts[i].text = $"<u>{currentStory.currentChoices[i].text}</u>";
+                choiceTexts[i].text = $"<color=#00FF00><b>{currentStory.currentChoices[i].text}</b></color>";
             }
             else
             {
                 choiceTexts[i].text = currentStory.currentChoices[i].text;
             }
-        }
-    }
-
-    private void Update()
-    {
-        if (currentNPC != null)
-        {
-            Vector3 npcScreenPosition = mainCamera.WorldToScreenPoint(currentNPC.position);
-            npcScreenPosition.y += 150;
-            dialoguePanel.transform.position = npcScreenPosition;
-
-            Vector3 choicesPosition = dialoguePanel.transform.position;
-            choicesPosition.y -= 100; // Offset for the choices panel
-            choicesPanel.transform.position = choicesPosition;
-        }
-
-        if (dialogueActive && choicesPanel.activeSelf)
-        {
-            HandleChoiceSelection();
         }
     }
 
@@ -182,7 +223,7 @@ public class DialogueManager : MonoBehaviour
             HighlightChoice(currentChoiceIndex);
         }
 
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             MakeChoice(currentChoiceIndex);
         }
@@ -194,20 +235,31 @@ public class DialogueManager : MonoBehaviour
 
         foreach (string tag in currentStory.currentTags)
         {
-            Debug.Log($"Tag found: {tag}");
+            HandleTags(tag);
         }
 
         choicesPanel.SetActive(false);
         currentChoiceIndex = 0;
 
-        StartCoroutine(ShowNextSentenceWithDelay());
+        ShowNextSentence();
+    }
+
+    private void HandleTags(string tag)
+    {
+        Debug.Log($"Unhandled tag: {tag}");
     }
 
     private void EndDialogue()
     {
         dialoguePanel.SetActive(false);
         dialogueActive = false;
-        currentNPC = null;
+
+        if (visualCue != null)
+        {
+            visualCue.SetActive(false);
+        }
+
+        OnDialogueEnd?.Invoke();
     }
 
     private void AutoSizeText(TextMeshProUGUI textElement)
@@ -216,17 +268,5 @@ public class DialogueManager : MonoBehaviour
         textElement.fontSizeMax = 50;
         textElement.fontSizeMin = 20;
         textElement.ForceMeshUpdate();
-    }
-
-    private void RevealShoes()
-    {
-        if (shoesObject != null)
-        {
-            shoesObject.SetActive(true); // Make the shoes visible
-        }
-        else
-        {
-            Debug.LogError("Shoes object not assigned!");
-        }
     }
 }

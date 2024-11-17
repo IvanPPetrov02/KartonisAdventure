@@ -1,25 +1,24 @@
--> Start
+-> start
 
-=== Start ===
-Azia: "Hey! There you are, Kartoni. I’ve been looking for you all night."
-Kartoni: "Looking for me? What’s going on?"
-Azia: "Yeah, last night, you went a little... overboard. I found you drunk in this hotel. Thought I’d stick around to make sure you didn’t get into more trouble."
+== start ==
+skip
+Azis: Hey there hot stuff, seems you got a bit over your head last night?
+Kartoni: Oh, don't tell me about it...
+Azis: Anyways, I brought you here since I wanted to make sure you are okay.
+Kartoni: Thank you. By the way, do you have any idea where my things are? I found myself in this box when I woke up.
+Azis: Well, I am not exactly sure about this.
 
-+ "Do you know where my stuff is? I need my inventory for the concert... and my clothes." ->
-    Azia: "Ah, right. Your stuff. Some of it’s already been found. Your older son picked up a few things and he's waiting outside with them."
-    -> End
++ [Alright, do you have any other tips for me?] -> gets_coffee
++ [Well, you brought me here. How don't you have any clue about this?!?] -> no_coffee
 
-+ "Wait... were you the one who stole my stuff?" ->
-    Azia: "What? Me? You think I’d steal from my best friend? Unbelievable!"
-    -> TakeDamage
+== gets_coffee ==
+Azis: Not tips, but I can give you this coffee to get you back on track. *Azis gives Kartoni coffee.*
+Kartoni: Thanks again, gotta go now!
+Azis: Bye, good luck.
+-> END
 
-
-=== TakeDamage ===
-Azia: "How dare you!"
-SLAP
--> DONE
-
-=== End ===
-Azia: "Anyway, good luck sorting yourself out. Let me know if you need anything else."
-
--> DONE
+== no_coffee ==
+Azis: WELL I DON'T, OKAY?!? YOU WERE LIKE THAT WHEN I FOUND YOU.
+Kartoni: Jeez, calm down. I don't have the energy to argue with you right now. See you...
+Azis: Huh.
+-> END

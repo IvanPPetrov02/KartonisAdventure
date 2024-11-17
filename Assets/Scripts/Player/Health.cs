@@ -81,9 +81,16 @@ public class Health : MonoBehaviour
 
     private void ReloadScene()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
+        // Destroy the AbilityManager to ensure it is reinitialized on scene reload
+        if (AbilityManager.Instance != null)
+        {
+            Destroy(AbilityManager.Instance.gameObject);
+        }
 
+        // Reload the current scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+/*
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Spike") || collision.gameObject.CompareTag("Enemy"))
@@ -92,6 +99,7 @@ public class Health : MonoBehaviour
             TakeDamage(1);
         }
     }
+    
 
     private void OnTriggerExit2D(Collider2D collision)
     {
@@ -100,6 +108,7 @@ public class Health : MonoBehaviour
             isInDamageZone = false;
         }
     }
+    */
 
     private void ActivateIframes()
     {

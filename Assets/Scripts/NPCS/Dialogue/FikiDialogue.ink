@@ -1,24 +1,24 @@
--> StartFiki
+-> start
 
-=== StartFiki ===
-Fiki: "Hi, Dad! Don’t forget, you’ve got a concert coming up really soon. You can’t afford to be late."
-Kartoni: "Yeah, yeah, I know. Your dad told me you found some of my stuff. Did you pick up anything?"
-Fiki: "I managed to grab your boots. That’s all I could find. They’re right over there by the bench."
+== start ==
+skip
+Fiki: Hi dad, I heard what happened last night. Are you alright?
+Kartoni: Well, as well as a hungover man can be...
+Fiki: I came here as soon as possible to check up on you.
+Kartoni: Well, thanks for caring, but I really gotta go and find my stuff since I don't want to miss my next concert.
+Fiki: Ah, right about that. I managed to find your boots—they were at the nightclub you sung at last night.
+Kartoni: Oh, really? Then more of my stuff should be there.
+Fiki: I hope so. I don't have much time, but I wish you good luck on getting there.
 
-+ "Thanks for finding them, Fiki." ->
-    Fiki: "No problem, Dad. Just be careful, okay? There’s a lot of broken glass on the streets. And watch out for the signs on the ground—they’ll help you avoid trouble."
-    -> UnlockDoubleJump
++ [Well, what is more important than helping me right now?] -> priorities
++ [Thank you, son. I will get going right away.] -> thanks_and_goodbye
 
-+ "That’s all? You didn’t find anything else?" ->
-    Fiki: "That’s all I could get, Dad. Sorry. Good luck finding the rest."
-    -> UnlockDoubleJump
+== priorities ==
+Fiki: Dad, I wish I could stay and help, but I haven't gotten my workout of the day yet, and I have my priorities set right. You should be more responsible after all.
+Kartoni: Okay... I see your point. Take care.
+-> END
 
-
-=== UnlockDoubleJump ===
-Kartoni: "Alright, at least now I can finaly step better and jump double the height!"
--> EndFiki
-
-
-=== EndFiki ===
-Fiki: "Alright, don’t forget about the concert! And take care of yourself, okay?"
--> DONE
+== thanks_and_goodbye ==
+Fiki: Good luck, dad. I am sure you will get everything back in no time!
+Kartoni: Thank you, Fiki. See you soon!
+-> END
