@@ -51,12 +51,19 @@ public class AudioManager : MonoBehaviour
 
     public void StopMusic(float fadeDuration = -1f)
     {
+        if (musicSource == null)
+        {
+            Debug.LogError("No AudioSource assigned to AudioManager!");
+            return;
+        }
+
         if (musicSource.isPlaying)
         {
             if (fadeDuration < 0f) fadeDuration = defaultFadeDuration;
             StartCoroutine(FadeOut(fadeDuration));
         }
     }
+
 
     private IEnumerator SwitchMusicWithFade(AudioClip newClip, float fadeDuration)
     {

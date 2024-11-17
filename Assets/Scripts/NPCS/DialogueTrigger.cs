@@ -10,17 +10,16 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private Transform playerTransform;
 
     [Header("Visual Cue")]
-    [SerializeField] private GameObject visualCue; // Assign the visual cue object in the inspector
+    [SerializeField] private GameObject visualCue;
+
+    [Header("Object to Disappear")]
+    [SerializeField] private GameObject objectToDisappear; // Assign in Inspector
 
     private Rigidbody2D playerRigidbody;
-    private Collider2D npcCollider; // Reference to the NPC's collider
+    private Collider2D npcCollider;
     private bool hasInteracted = false;
-    private bool playerInRange = false; // Tracks if the player is inside the trigger area
+    private bool playerInRange = false;
 
-    // Variables to store the player's original state
-    private Vector3 originalPlayerPosition;
-    private Quaternion originalPlayerRotation;
-    private Vector3 originalPlayerScale;
     private Vector2 originalPlayerVelocity;
     private float originalPlayerGravityScale;
 
@@ -47,19 +46,25 @@ public class DialogueTrigger : MonoBehaviour
         {
             Debug.LogError($"Visual cue not assigned to {gameObject.name}. Please assign in the inspector.");
         }
+
+        // Subscribe to the special phrase event
+        DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
+        if (dialogueManager != null)
+        {
+            dialogueManager.OnSpecialPhraseDetected += HandleSpecialPhrase;
+        }
     }
 
     private void Update()
     {
-        // Check if the player is in range and presses "E" to trigger dialogue
         if (playerInRange && !hasInteracted && Input.GetKeyDown(KeyCode.E))
         {
-            SavePlayerState(); // Save the player's state before modifying
+            SavePlayerState(); // Save player's state
             TriggerDialogue();
 
             if (playerRigidbody != null)
             {
-                playerRigidbody.velocity = Vector2.zero; // Stop any sliding
+                playerRigidbody.velocity = Vector2.zero; // Stop movement
                 playerRigidbody.gravityScale = 5; // Ensure instant fall
             }
         }
@@ -69,11 +74,11 @@ public class DialogueTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player") && !hasInteracted)
         {
-            playerInRange = true; // Player is now inside the trigger area
+            playerInRange = true;
 
             if (visualCue != null)
             {
-                visualCue.SetActive(true); // Show the visual cue
+                visualCue.SetActive(true);
             }
         }
     }
@@ -82,11 +87,11 @@ public class DialogueTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            playerInRange = false; // Player is no longer in range
+            playerInRange = false;
 
             if (visualCue != null)
             {
-                visualCue.SetActive(false); // Hide the visual cue
+                visualCue.SetActive(false);
             }
         }
     }
@@ -118,20 +123,18 @@ public class DialogueTrigger : MonoBehaviour
         {
             dialogueManager.StartInkDialogue(new Ink.Runtime.Story(inkJSON.text), transform);
 
-            // Subscribe to dialogue end event to restore player state
             dialogueManager.OnDialogueEnd += HandleDialogueEnd;
 
             DeactivateVisualCue();
-            RemoveCollider(); // Remove the collider after triggering dialogue
+            RemoveCollider();
             hasInteracted = true;
         }
     }
 
     private void HandleDialogueEnd()
     {
-        RestorePlayerState(); // Restore the player's state
+        RestorePlayerState();
 
-        // Optionally unsubscribe from the event to avoid memory leaks
         DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
         if (dialogueManager != null)
         {
@@ -151,8 +154,26 @@ public class DialogueTrigger : MonoBehaviour
     {
         if (npcCollider != null)
         {
-            Destroy(npcCollider); // Remove the collider to prevent further interaction
+            Destroy(npcCollider);
             npcCollider = null;
+        }
+    }
+
+    private void HandleSpecialPhrase(string phrase)
+    {
+        if (objectToDisappear != null)
+        {
+            objectToDisappear.SetActive(false);
+            Debug.Log($"{objectToDisappear.name} has disappeared due to the special phrase: {phrase}");
+        }
+    }
+
+    private void OnDestroy()
+    {
+        DialogueManager dialogueManager = FindObjectOfType<DialogueManager>();
+        if (dialogueManager != null)
+        {
+            dialogueManager.OnSpecialPhraseDetected -= HandleSpecialPhrase;
         }
     }
 }

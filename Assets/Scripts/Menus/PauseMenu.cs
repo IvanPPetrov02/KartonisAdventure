@@ -50,12 +50,19 @@ public class PauseMenu : MonoBehaviour
     {
         Time.timeScale = 1f; // Resume time
 
+        // Stop the current music
+        if (AudioManager.instance != null)
+        {
+            AudioManager.instance.StopMusic();
+        }
+
         // Destroy the AbilityManager if transitioning to a completely different scene
         if (AbilityManager.Instance != null)
         {
             Destroy(AbilityManager.Instance.gameObject);
         }
 
+        // Load the main menu scene
         SceneManager.LoadScene("Main menu"); // Replace with your actual main menu scene name
     }
 }
